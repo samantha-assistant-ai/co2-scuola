@@ -11,9 +11,10 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 TEARDOWN="${TEARDOWN:-$HOME/projects/teardown}"
 
 cd "$TEARDOWN"
-node sims/build.mjs auto-live
+node sims/build.mjs auto-live auto2-live
 
 cp teardown-out/dist/auto-live.html "$HERE/sim.html"
+cp teardown-out/dist/auto2-live.html "$HERE/v2.html"
 cp sims/auto-shared/model.js \
    sims/auto-shared/car.js \
    sims/auto-shared/overlay.js \
@@ -27,19 +28,23 @@ cd "$HERE"
 python3 - <<'PY'
 import re, pathlib
 
-p = pathlib.Path('sim.html')
-s = p.read_text(encoding='utf-8')
-s = s.replace('<html lang="en">', '<html lang="it">', 1)
-s = re.sub(r'<title>.*?</title>', '<title>Un giorno a scuola · La Scienza Merita</title>', s, count=1)
-if 'name="robots"' not in s:
-    s = s.replace('<head>', '<head><meta name="robots" content="noindex,nofollow">', 1)
-desc = ('Simulazione interattiva: quanta CO2 produce il viaggio casa-scuola, '
-        'a seconda del mezzo e del motore.')
-if 'name="description"' not in s:
-    s = s.replace('<meta charset="utf-8">',
-                  f'<meta charset="utf-8">\n<meta name="description" content="{desc}">', 1)
-p.write_text(s, encoding='utf-8')
-print('sim.html rifinito:', len(s), 'byte')
+def rifinisci(nome, titolo):
+    p = pathlib.Path(nome)
+    s = p.read_text(encoding='utf-8')
+    s = s.replace('<html lang="en">', '<html lang="it">', 1)
+    s = re.sub(r'<title>.*?</title>', f'<title>{titolo}</title>', s, count=1)
+    if 'name="robots"' not in s:
+        s = s.replace('<head>', '<head><meta name="robots" content="noindex,nofollow">', 1)
+    desc = ('Simulazione interattiva: quanta CO2 produce il viaggio casa-scuola, '
+            'a seconda del mezzo e del motore.')
+    if 'name="description"' not in s:
+        s = s.replace('<meta charset="utf-8">',
+                      f'<meta charset="utf-8">\n<meta name="description" content="{desc}">', 1)
+    p.write_text(s, encoding='utf-8')
+    print(nome, 'rifinito:', len(s), 'byte')
+
+rifinisci('sim.html', 'Un giorno a scuola · La Scienza Merita')
+rifinisci('v2.html', 'L\'Elefante Invisibile · La Scienza Merita (v2)')
 
 # la pagina di benvenuto diventa l'ingresso
 w = pathlib.Path('welcome.html')
@@ -47,4 +52,4 @@ pathlib.Path('index.html').write_text(w.read_text(encoding='utf-8'), encoding='u
 print('index.html = pagina di benvenuto')
 PY
 
-echo "Fatto. Apri index.html per la copertina, sim.html per il simulatore."
+echo "Fatto. index.html copertina · sim.html v1 · v2.html nuova versione."
