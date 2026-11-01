@@ -3,7 +3,7 @@ import {runSim} from 'teardown-kit/runtime.js';
 import {createStage} from 'teardown-kit/stage3d.js';
 import {createCar} from './car.js';
 import {createOverlay} from './overlay.js';
-import {co2, consumo, FATTORI, risparmio} from './model.js';
+import {co2, consumo, FATTORI, annuale, GIORNI_SCUOLA} from './model.js';
 
 const DEFAULTS = {
   duration: 9999,
@@ -196,6 +196,7 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
     onMezzo: (m) => {
       stato.mezzo = m;
       auto.setColore(m);
+      auto.setMotore(m);
       interagisci();
     },
     onKm: (v) => {
@@ -209,6 +210,7 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
   });
 
   auto.setColore(stato.mezzo);
+  auto.setMotore(stato.mezzo);
   auto.setCutaway(stato.cutTarget);
 
   function interagisci() {
@@ -221,9 +223,9 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
 
   // camera: 3/4, si avvicina quando il motore è aperto
   const camBase = new THREE.Vector3(5.6, 2.55, 7.0);
-  const camCut = new THREE.Vector3(3.0, 1.9, 3.4);
+  const camCut = new THREE.Vector3(4.6, 2.8, 5.4);
   const guardaBase = new THREE.Vector3(0, 1.05, 0);
-  const guardaCut = new THREE.Vector3(1.2, 1.15, 0);
+  const guardaCut = new THREE.Vector3(0.6, 1.05, 0);
   const cam = new THREE.Vector3();
   const guarda = new THREE.Vector3();
 
@@ -246,6 +248,7 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
         const m = ORDINE_TOUR[stato.tourStep % ORDINE_TOUR.length];
         stato.mezzo = m;
         auto.setColore(m);
+        auto.setMotore(m);
         stato.cutTarget = stato.tourStep % 3 === 2 ? 1 : 0;
       }
     } else {
@@ -256,10 +259,8 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
       }
     }
 
-    // meccanica
-    const accesa = stato.mezzo !== 'elettrica';
-    const angolo = t * (accesa ? 11 : 0);
-    if (accesa) auto.update(angolo, t);
+    // meccanica: il motore gira sempre, anche a vista esplosa
+    auto.update(t * 9);
     auto.giraRuote(dt * 4.2);
 
     // strada
@@ -287,9 +288,9 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
 
     let nota;
     if (stato.mezzo === 'elettrica') {
-      nota = `${cons.toFixed(2)} kWh dalla rete · ${f.fattore} g CO₂ per kWh. Anche l'elettricità ha un costo: dipende da come la produciamo.`;
+      nota = `${cons.toFixed(2)} kWh dalla rete · ${f.fattore} g CO₂ per kWh`;
     } else {
-      nota = `${cons.toFixed(2)} litri di ${f.nome.toLowerCase()} · ${(f.fattore / 1000).toFixed(2)} kg CO₂ per litro bruciato.`;
+      nota = `${cons.toFixed(2)} L di ${f.nome.toLowerCase()} · ${(f.fattore / 1000).toFixed(2)} kg CO₂/L`;
     }
 
     overlay.update({
@@ -298,8 +299,11 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
       mezzo: stato.mezzo,
       valori,
       nota,
+      annuale: annuale(stato.mezzo, stato.km),
+      giorni: GIORNI_SCUOLA,
       cutaway: stato.cutTarget > 0.5,
       tour: stato.tour,
+      t,
     });
 
     stage.render();

@@ -43,3 +43,17 @@ export function risparmio(mezzo, km) {
   if (!base) return 0;
   return Math.max(0, Math.round((1 - co2(mezzo, km) / base) * 100));
 }
+
+/** Giorni di scuola in un anno scolastico (valore didattico arrotondato). */
+export const GIORNI_SCUOLA = 200;
+
+/**
+ * Il conto annuale del viaggio casa-scuola.
+ * `kmAndata` e' la distanza di sola andata: il tragitto quotidiano e' doppio.
+ */
+export function annuale(mezzo, kmAndata) {
+  const andataRitorno = kmAndata * 2;
+  const ogniGiorno = co2(mezzo, andataRitorno);
+  const anno = (ogniGiorno * GIORNI_SCUOLA) / 1000; // kg
+  return {andataRitorno, ogniGiorno, anno};
+}
