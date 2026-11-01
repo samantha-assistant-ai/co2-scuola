@@ -242,6 +242,10 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
       stato.cutTarget = stato.cutTarget > 0.5 ? 0 : 1;
       interagisci();
     },
+    onMusica: (nome) => {
+      audio.ensure();
+      audio.setTraccia(nome === 'nessuna' ? 'nessuna' : nome);
+    },
     onToggleAudio: () => {
       audio.ensure();
       const on = audio.toggle();
@@ -256,7 +260,7 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
     const m = MEZZI[stato.mezzo];
     auto.setVeicolo(stato.mezzo, m.scala);
     auto.setColore(stato.motore);
-    auto.setMotore(stato.motore);
+    auto.setMotore(stato.motore, MOTORI[stato.motore]?.nome ?? '');
     const bici = stato.mezzo === 'bicicletta';
     auto.setScarico(stato.motore, bici ? 'nessuno' : (MOTORI[stato.motore]?.fumo ?? 'nessuno'));
     audio.setVeicolo(stato.mezzo, stato.motore);

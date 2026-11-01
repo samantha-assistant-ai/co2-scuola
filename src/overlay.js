@@ -2,7 +2,7 @@
 // Stile da manuale illustrato: carta, angoli morbidi, colori pieni.
 import {drawMap} from './map.js';
 import {MEZZI, MOTORI} from './model.js';
-import {SCIENZA, ELEFANTE, STEMISTA, LUCA} from './assetimgs.js';
+import {SCIENZA, ELEFANTE, STEMISTA, LUCA, GRUPPO} from './assetimgs.js';
 
 const CSS = `
 #ui { position: fixed; inset: 0; pointer-events: none; font-family: 'Inter', system-ui, sans-serif; color: #1b2a4a; }
@@ -74,6 +74,10 @@ const CSS = `
 #ui .luca { position: absolute; left: 1.2vmin; top: 25.5vmin; height: 20.5vmin; width: auto;
   filter: drop-shadow(0 6px 14px rgba(27,42,74,.22)); transform: rotate(-1.5deg); }
 
+#ui .gruppo { position: absolute; right: 3.6vmin; top: 29.5vmin; height: 18vmin; width: auto;
+  border-radius: 1.6vmin; border: 2px solid rgba(27,42,74,.9); box-shadow: 4px 4px 0 rgba(27,42,74,.14);
+  transform: rotate(1.6deg); }
+
 /* --- controlli --- */
 #ui .controlli {
   position: absolute; left: 3.6vmin; right: 3.6vmin; bottom: 2.8vmin;
@@ -94,6 +98,16 @@ const CSS = `
 #ui .chip:disabled { opacity: .35; cursor: not-allowed; }
 #ui .chip .ic { font-size: 1.15em; line-height: 1; }
 
+#ui select.musica {
+  appearance: none; border: 2px solid rgba(27,42,74,.28); background: #fffdf8; color: #1b2a4a;
+  border-radius: 1.4vmin; padding: 1vmin 2.6vmin 1vmin 1.4vmin; cursor: pointer; font: inherit;
+  font-size: clamp(12px, 1.5vmin, 19px); font-weight: 700;
+  background-image: linear-gradient(45deg, transparent 50%, #1b2a4a 50%), linear-gradient(135deg, #1b2a4a 50%, transparent 50%);
+  background-position: calc(100% - 1.5vmin) 55%, calc(100% - 1vmin) 55%;
+  background-size: .55vmin .55vmin, .55vmin .55vmin;
+  background-repeat: no-repeat;
+}
+
 #ui .distanza { flex: 1 1 200px; min-width: 180px; }
 #ui .distanza label { display: block; font-size: clamp(10px, 1.25vmin, 15px); color: rgba(27,42,74,.66); margin-bottom: .4vmin; font-weight: 700; }
 #ui .distanza label b { color: #1b2a4a; }
@@ -107,7 +121,7 @@ const CSS = `
 
 const num = (v) => Math.round(v).toLocaleString('it-IT');
 
-export function createOverlay({onMezzo, onMotore, onKm, onCut, onToggleAudio}) {
+export function createOverlay({onMezzo, onMotore, onKm, onCut, onToggleAudio, onMusica}) {
   if (!document.getElementById('ui-style')) {
     const st = document.createElement('style');
     st.id = 'ui-style';
@@ -153,6 +167,8 @@ export function createOverlay({onMezzo, onMotore, onKm, onCut, onToggleAudio}) {
       <div class="cap" id="a-cap"></div>
     </div>
 
+    <img class="gruppo" src="${GRUPPO}" alt="Marta e i quattro studenti" />
+
     <div class="pannello mappa">
       <canvas id="map"></canvas>
       <div class="et">Il percorso visto dall'alto</div>
@@ -173,6 +189,12 @@ export function createOverlay({onMezzo, onMotore, onKm, onCut, onToggleAudio}) {
           <input id="slider" type="range" min="1" max="12" step="0.5" value="3" />
         </div>
         <button class="chip" id="cut" type="button" aria-pressed="false">🔧 <span>Apri il motore</span></button>
+        <select class="musica" id="musica" aria-label="Musica di sottofondo">
+          <option value="allegra">Musica · Allegra</option>
+          <option value="serena">Musica · Serena</option>
+          <option value="curiosa">Musica · Curiosa</option>
+          <option value="nessuna">Musica · Nessuna</option>
+        </select>
         <button class="chip" id="audio" type="button" aria-pressed="true">🔊 <span>Audio</span></button>
       </div>
     </div>
@@ -210,6 +232,9 @@ export function createOverlay({onMezzo, onMotore, onKm, onCut, onToggleAudio}) {
 
   const cut = root.querySelector('#cut');
   cut.addEventListener('click', () => onCut());
+
+  const musicaSel = root.querySelector('#musica');
+  musicaSel.addEventListener('change', () => onMusica && onMusica(musicaSel.value));
 
   const audioBtn = root.querySelector('#audio');
   audioBtn.addEventListener('click', () => {
