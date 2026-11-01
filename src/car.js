@@ -153,6 +153,85 @@ export function createCar() {
   bimbo.position.y = 0.70;
   root.add(papa, bimbo);
 
+  // ---- scarico: tubo e nuvolette ----
+  const tubo = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.045, 0.045, 0.18, 10),
+    new THREE.MeshStandardMaterial({color: 0x8b8f95, roughness: 0.5, metalness: 0.7}),
+  );
+  tubo.geometry.rotateZ(Math.PI / 2);
+  tubo.position.set(-2.05, 0.30, 0.46);
+  root.add(tubo);
+
+  const textureFumo = (() => {
+    const c = document.createElement('canvas');
+    c.width = c.height = 64;
+    const g = c.getContext('2d');
+    const grd = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    grd.addColorStop(0, 'rgba(255,255,255,0.92)');
+    grd.addColorStop(0.45, 'rgba(255,255,255,0.34)');
+    grd.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = grd;
+    g.fillRect(0, 0, 64, 64);
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+  })();
+
+  const NUVOLE = 16;
+  const nuvole = [];
+  for (let i = 0; i < NUVOLE; i++) {
+    const m = new THREE.SpriteMaterial({
+      map: textureFumo,
+      color: 0xa8a8a8,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+    });
+    const sp = new THREE.Sprite(m);
+    sp.position.set(-2.1, 0.3, 0.46);
+    sp.scale.setScalar(0.2);
+    root.add(sp);
+    nuvole.push(sp);
+  }
+
+  const scarico = {attivo: true, intensita: 0.46, colore: 0xa8a8a8};
+
+  function setScarico(mezzo) {
+    if (mezzo === 'elettrica') {
+      scarico.attivo = false;
+      scarico.intensita = 0;
+      for (const n of nuvole) n.material.opacity = 0;
+      return;
+    }
+    scarico.attivo = true;
+    if (mezzo === 'diesel') {
+      scarico.colore = 0x2a2a2a;
+      scarico.intensita = 1.0;
+    } else {
+      scarico.colore = 0x5c5c5c;
+      scarico.intensita = 0.86;
+    }
+    for (const n of nuvole) n.material.color.setHex(scarico.colore);
+  }
+
+  /** le nuvolette si schiariscono man mano che si allontanano dal tubo */
+  function aggiornaFumo(t) {
+    const CICLO = 2.4;
+    for (let i = 0; i < NUVOLE; i++) {
+      const sp = nuvole[i];
+      if (!scarico.attivo) continue;
+      const fase = ((t / CICLO) + i / NUVOLE) % 1;
+      sp.position.set(
+        -2.22 - fase * 2.7,
+        0.34 + fase * 1.85 + Math.sin(i * 7.3) * 0.06,
+        0.46 + Math.sin(i * 3.1) * 0.13 * (0.3 + fase),
+      );
+      const s = 0.26 + fase * 0.9;
+      sp.scale.set(s, s, s);
+      sp.material.opacity = scarico.intensita * 0.75 * Math.pow(1 - fase, 1.05);
+    }
+  }
+
   // ---- motore ----
   const motore = new THREE.Group();
   motore.position.set(1.32, 0.44, 0);
@@ -309,7 +388,8 @@ export function createCar() {
   }
 
   /** angolo di manovella in radianti */
-  function update(angolo) {
+  function update(angolo, t) {
+    aggiornaFumo(t);
     if (stato.mezzo === 'elettrica') {
       rotore.rotation.z = angolo;
       for (const a of rotore.userData.alette || []) a.rotation.z = angolo + (a.userData.base ?? 0);
@@ -333,5 +413,5 @@ export function createCar() {
     for (const r of ruote) r.rotation.z -= vel;
   }
 
-  return {root, motore, guscio, update, setCutaway, setColore, setMotore, giraRuote, stato, pistoni};
+  return {root, motore, guscio, update, setCutaway, setColore, setMotore, setScarico, giraRuote, stato, pistoni};
 }

@@ -53,7 +53,7 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
   // ---- suolo e strada ----
   const suolo = new THREE.Mesh(
     new THREE.PlaneGeometry(200, 200),
-    new THREE.MeshStandardMaterial({color: 0xb6b0a1, roughness: 0.98}),
+    new THREE.MeshStandardMaterial({color: 0x8fb173, roughness: 0.98}),
   );
   suolo.rotation.x = -Math.PI / 2;
   suolo.receiveShadow = true;
@@ -85,64 +85,88 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
     scene.add(m);
   }
 
-  // facciate: una texture disegnata a mano, riusata su tutti i palazzi
-  const facciata = (base, win) => {
-    const c = document.createElement('canvas');
-    c.width = 64;
-    c.height = 64;
-    const g = c.getContext('2d');
-    g.fillStyle = base;
-    g.fillRect(0, 0, 64, 64);
-    g.fillStyle = win;
-    for (let y = 7; y < 64; y += 17) {
-      for (let x = 7; x < 64; x += 17) g.fillRect(x, y, 9, 10);
-    }
-    const t = new THREE.CanvasTexture(c);
-    t.wrapS = t.wrapT = THREE.RepeatWrapping;
-    t.colorSpace = THREE.SRGBColorSpace;
-    t.anisotropy = 4;
-    return t;
-  };
-  const basi = ['#e2d8c6', '#d9c3aa', '#cfc9bd', '#e6ddcd', '#c9b7a2', '#dfd2c0'];
-  const fin = '#5b6b78';
+  // ---- il paese: casette basse, tetti a punta, giardini e siepi ----
+  const muri = ['#efe6d4', '#e7d5ba', '#dfe4d8', '#eadfc9', '#d9cfc0', '#e4d2b6'];
+  const tetti = ['#a4543a', '#8c4a38', '#7a5a44', '#96573f', '#b06a4c'];
+  const verde = new THREE.MeshStandardMaterial({color: 0x76a855, roughness: 0.96});
+  const siepeMat = new THREE.MeshStandardMaterial({color: 0x4d8a44, roughness: 0.95});
 
-  // palazzi sui due lati
-  for (let i = 0; i < 16; i++) {
+  for (let i = 0; i < 13; i++) {
     for (const lato of [1, -1]) {
-      const h = 4 + ((i * 29 + (lato > 0 ? 7 : 13)) % 5);
-      const w = 7 + ((i * 11 + (lato > 0 ? 3 : 8)) % 5);
-      const tex = facciata(basi[(i + (lato > 0 ? 1 : 0)) % basi.length], fin);
-      tex.repeat.set(Math.max(1, w / 4.2), Math.max(1, h / 3.6));
-      const pal = new THREE.Mesh(
-        new THREE.BoxGeometry(w, h, 9),
-        new THREE.MeshStandardMaterial({map: tex, roughness: 0.9}),
+      const seed = i * 17 + (lato > 0 ? 3 : 11);
+      const h = 3.2 + (seed % 3) * 0.9;              // uno o due piani
+      const w = 4.4 + (seed % 4) * 0.7;
+      const d = 4.2 + ((seed * 3) % 3) * 0.6;
+      const x = -66 + i * 10.4 + ((seed % 3) - 1) * 0.9;
+      const z = lato * (16 + (seed % 3) * 2.2);
+
+      const casa = new THREE.Mesh(
+        new THREE.BoxGeometry(w, h, d),
+        new THREE.MeshStandardMaterial({color: muri[seed % muri.length], roughness: 0.92}),
       );
-      pal.position.set(-76 + i * 8.2, h / 2, lato > 0 ? 30 : -30);
-      pal.castShadow = true;
-      pal.receiveShadow = true;
-      scene.add(pal);
-      // un cornicione chiaro in cima
-      const cor = new THREE.Mesh(
-        new THREE.BoxGeometry(w + 0.4, 0.35, 9.4),
-        new THREE.MeshStandardMaterial({color: 0xefe8da, roughness: 0.85}),
+      casa.position.set(x, h / 2, z);
+      casa.castShadow = true;
+      casa.receiveShadow = true;
+      scene.add(casa);
+
+      // tetto a punta
+      const tetto = new THREE.Mesh(
+        new THREE.ConeGeometry(Math.max(w, d) * 0.74, 1.8, 4),
+        new THREE.MeshStandardMaterial({color: tetti[seed % tetti.length], roughness: 0.86}),
       );
-      cor.position.set(pal.position.x, h + 0.15, pal.position.z);
-      scene.add(cor);
+      tetto.position.set(x, h + 0.9, z);
+      tetto.rotation.y = Math.PI / 4;
+      tetto.castShadow = true;
+      scene.add(tetto);
+
+      // comignolo
+      if (seed % 2 === 0) {
+        const c = new THREE.Mesh(
+          new THREE.BoxGeometry(0.5, 0.9, 0.5),
+          new THREE.MeshStandardMaterial({color: 0xd8cbb8, roughness: 0.9}),
+        );
+        c.position.set(x + w * 0.22, h + 1.5, z);
+        scene.add(c);
+      }
+
+      // giardino davanti a casa
+      const giardino = new THREE.Mesh(new THREE.PlaneGeometry(w * 0.95, 5.0), verde);
+      giardino.rotation.x = -Math.PI / 2;
+      giardino.position.set(x, 0.012, z - lato * (d / 2 + 2.4));
+      giardino.receiveShadow = true;
+      scene.add(giardino);
+
+      // siepe sul confine del giardino
+      const siepe = new THREE.Mesh(new THREE.BoxGeometry(w * 0.98, 0.8, 0.5), siepeMat);
+      siepe.position.set(x, 0.4, z - lato * (d / 2 + 4.9));
+      siepe.castShadow = true;
+      scene.add(siepe);
     }
   }
+
+  // prato oltre le case: campagna, non asfalto
+  const campagna = new THREE.Mesh(
+    new THREE.PlaneGeometry(260, 120),
+    new THREE.MeshStandardMaterial({color: 0x86ab60, roughness: 1}),
+  );
+  campagna.rotation.x = -Math.PI / 2;
+  campagna.position.set(0, -0.02, 0);
+  campagna.receiveShadow = true;
+  scene.add(campagna);
 
   // qualche albero per dare scala
   const tronco = new THREE.MeshStandardMaterial({color: 0x6b5442, roughness: 0.95});
   const chioma = new THREE.MeshStandardMaterial({color: 0x4f8f4a, roughness: 0.9});
-  for (let i = 0; i < 10; i++) {
-    const z = i % 2 === 0 ? 12.4 : -12.4;
-    const x = -58 + i * 12.5;
-    const t = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.18, 2.2, 8), tronco);
-    t.position.set(x, 1.1, z);
+  for (let i = 0; i < 18; i++) {
+    const z = (i % 2 === 0 ? 1 : -1) * (11.5 + ((i * 7) % 4));
+    const x = -62 + i * 7.4;
+    const scala = 0.75 + ((i * 13) % 5) * 0.12;
+    const t = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.17, 2.0 * scala, 8), tronco);
+    t.position.set(x, 1.0 * scala, z);
     t.castShadow = true;
     scene.add(t);
-    const c = new THREE.Mesh(new THREE.SphereGeometry(0.95, 12, 12), chioma);
-    c.position.set(x, 2.5, z);
+    const c = new THREE.Mesh(new THREE.SphereGeometry(1.05 * scala, 12, 12), chioma);
+    c.position.set(x, 2.3 * scala, z);
     c.castShadow = true;
     scene.add(c);
   }
@@ -197,6 +221,7 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
       stato.mezzo = m;
       auto.setColore(m);
       auto.setMotore(m);
+      auto.setScarico(m);
       interagisci();
     },
     onKm: (v) => {
@@ -211,6 +236,7 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
 
   auto.setColore(stato.mezzo);
   auto.setMotore(stato.mezzo);
+  auto.setScarico(stato.mezzo);
   auto.setCutaway(stato.cutTarget);
 
   function interagisci() {
@@ -249,6 +275,7 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
         stato.mezzo = m;
         auto.setColore(m);
         auto.setMotore(m);
+        auto.setScarico(m);
         stato.cutTarget = stato.tourStep % 3 === 2 ? 1 : 0;
       }
     } else {
@@ -260,7 +287,7 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
     }
 
     // meccanica: il motore gira sempre, anche a vista esplosa
-    auto.update(t * 9);
+    auto.update(t * 9, t);
     auto.giraRuote(dt * 4.2);
 
     // strada
