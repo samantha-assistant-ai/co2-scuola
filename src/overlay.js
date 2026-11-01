@@ -124,7 +124,7 @@ const CSS = `
 
 const num = (v) => Math.round(v).toLocaleString('it-IT');
 
-export function createOverlay({onMezzo, onMotore, onKm, onCut, onToggleAudio, onMusica}) {
+export function createOverlay({onMezzo, onMotore, onKm, onCut, onToggleMusica, onToggleMotore, onMusica}) {
   if (!document.getElementById('ui-style')) {
     const st = document.createElement('style');
     st.id = 'ui-style';
@@ -202,7 +202,8 @@ export function createOverlay({onMezzo, onMotore, onKm, onCut, onToggleAudio, on
           <option value="curiosa">Musica · Curiosa</option>
           <option value="nessuna">Musica · Nessuna</option>
         </select>
-        <button class="chip" id="audio" type="button" aria-pressed="true">🔊 <span>Audio</span></button>
+        <button class="chip" id="musica-on" type="button" aria-pressed="true">🎵 <span>Musica</span></button>
+        <button class="chip" id="motore-on" type="button" aria-pressed="true">🔈 <span>Motore</span></button>
       </div>
     </div>
   `;
@@ -243,11 +244,18 @@ export function createOverlay({onMezzo, onMotore, onKm, onCut, onToggleAudio, on
   const musicaSel = root.querySelector('#musica');
   musicaSel.addEventListener('change', () => onMusica && onMusica(musicaSel.value));
 
-  const audioBtn = root.querySelector('#audio');
-  audioBtn.addEventListener('click', () => {
-    const on = onToggleAudio ? onToggleAudio() : true;
-    audioBtn.setAttribute('aria-pressed', String(on));
-    audioBtn.innerHTML = `${on ? '🔊' : '🔇'} <span>Audio</span>`;
+  const musicaBtn = root.querySelector('#musica-on');
+  musicaBtn.addEventListener('click', () => {
+    const on = onToggleMusica ? onToggleMusica() : true;
+    musicaBtn.setAttribute('aria-pressed', String(on));
+    musicaBtn.innerHTML = `${on ? '🎵' : '🔇'} <span>Musica</span>`;
+  });
+
+  const motoreBtn = root.querySelector('#motore-on');
+  motoreBtn.addEventListener('click', () => {
+    const on = onToggleMotore ? onToggleMotore() : true;
+    motoreBtn.setAttribute('aria-pressed', String(on));
+    motoreBtn.innerHTML = `${on ? '🔈' : '🔇'} <span>Motore</span>`;
   });
 
   const barre = root.querySelector('#barre');

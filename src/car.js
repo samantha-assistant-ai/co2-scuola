@@ -413,26 +413,84 @@ export function createCar() {
 
   const elettrico = new THREE.Group();
   elettrico.visible = false;
-  const statoreGeo = new THREE.CylinderGeometry(0.115, 0.115, 0.34, 24);
-  statoreGeo.rotateX(Math.PI / 2);
-  const statore = new THREE.Mesh(statoreGeo, alluminio);
-  statore.position.set(0, 0.12, 0);
-  elettrico.add(statore);
 
-  const rotoreGeo = new THREE.CylinderGeometry(0.062, 0.062, 0.37, 20);
-  rotoreGeo.rotateX(Math.PI / 2);
-  const rotore = new THREE.Mesh(rotoreGeo, rame);
-  rotore.position.set(0, 0.12, 0);
-  elettrico.add(rotore);
-
-  for (let i = 0; i < 6; i++) {
-    const a = new THREE.Mesh(new THREE.BoxGeometry(0.022, 0.115, 0.02), pistoneMat);
-    a.position.set(0, 0.12, 0);
-    a.rotation.z = (i * Math.PI) / 3;
-    elettrico.add(a);
-    rotore.userData.alette = rotore.userData.alette || [];
-    rotore.userData.alette.push(a);
+  // etichetta con i poli
+  const battCanvas = document.createElement('canvas');
+  battCanvas.width = 256;
+  battCanvas.height = 160;
+  {
+    const g = battCanvas.getContext('2d');
+    g.fillStyle = '#20262e';
+    g.fillRect(0, 0, 256, 160);
+    g.fillStyle = '#ffffff';
+    g.font = 'bold 84px Inter, system-ui, sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText('+', 78, 84);
+    g.fillText('−', 178, 84);
   }
+  const battTex = new THREE.CanvasTexture(battCanvas);
+  battTex.colorSpace = THREE.SRGBColorSpace;
+
+  const guscioBatteria = new THREE.MeshStandardMaterial({color: 0x2b3442, roughness: 0.55, metalness: 0.35});
+  const poloPiu = new THREE.MeshStandardMaterial({color: 0xc8322a, roughness: 0.4, metalness: 0.5});
+  const poloMeno = new THREE.MeshStandardMaterial({color: 0x14171c, roughness: 0.5, metalness: 0.4});
+  const cavoMat = new THREE.MeshStandardMaterial({color: 0xd2622a, roughness: 0.6, metalness: 0.2});
+  const cavoNeroMat = new THREE.MeshStandardMaterial({color: 0x24282e, roughness: 0.6, metalness: 0.2});
+
+  // quattro batterie grandi, in fila
+  for (let i = 0; i < 4; i++) {
+    const z = -0.27 + i * 0.18;
+    const corpo = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.19, 0.16), guscioBatteria);
+    corpo.position.set(0, 0.09, z);
+    corpo.castShadow = true;
+    elettrico.add(corpo);
+
+    const etichetta = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.24, 0.15),
+      new THREE.MeshBasicMaterial({map: battTex, transparent: false}),
+    );
+    etichetta.rotation.x = -Math.PI / 2;
+    etichetta.position.set(0, 0.186, z);
+    elettrico.add(etichetta);
+
+    const piu = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.06, 10), poloPiu);
+    piu.position.set(0.075, 0.215, z);
+    elettrico.add(piu);
+    const meno = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.06, 10), poloMeno);
+    meno.position.set(-0.075, 0.215, z);
+    elettrico.add(meno);
+  }
+
+  // due motori, uno per ruota davanti
+  const motoriRuota = [];
+  for (const lato of [1, -1]) {
+    const m = new THREE.Group();
+    const statoreRuota = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.1, 0.1, 0.16, 20),
+      new THREE.MeshStandardMaterial({color: 0x9aa3ad, roughness: 0.45, metalness: 0.6}),
+    );
+    statoreRuota.rotation.x = Math.PI / 2;
+    m.add(statoreRuota);
+    const rotoreRuota = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.18, 16), rame);
+    rotoreRuota.rotation.x = Math.PI / 2;
+    m.add(rotoreRuota);
+    m.position.set(0.02, 0.02, lato * 0.84);
+    elettrico.add(m);
+    motoriRuota.push({gruppo: m, rotore: rotoreRuota});
+  }
+
+  // cavi: dalle batterie ai due motori
+  function cavo(da, a, materiale) {
+    const curva = new THREE.CatmullRomCurve3([da, da.clone().lerp(a, 0.5).add(new THREE.Vector3(0.05, 0.06, 0)), a]);
+    const geo = new THREE.TubeGeometry(curva, 24, 0.012, 8, false);
+    elettrico.add(new THREE.Mesh(geo, materiale));
+  }
+  for (const lato of [1, -1]) {
+    cavo(new THREE.Vector3(0.075, 0.215, lato * 0.27), new THREE.Vector3(0.02, 0.02, lato * 0.84), cavoMat);
+    cavo(new THREE.Vector3(-0.075, 0.215, lato * 0.27), new THREE.Vector3(0.02, 0.02, lato * 0.84), cavoNeroMat);
+  }
+
   motore.add(elettrico);
 
   // ---- autobus scolastico ----
@@ -469,9 +527,35 @@ export function createCar() {
     pavimento.position.y = 0.56;
     bus.add(pavimento);
 
-    const muso = new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.0, 2.44), giallo);
-    muso.position.set(4.2, 1.55, 0);
-    bus.add(muso);
+    // frontale aperto: cornice sopra e sotto, vetro in mezzo
+    const corniceAlta = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.5, 2.44), giallo);
+    corniceAlta.position.set(4.2, 2.31, 0);
+    bus.add(corniceAlta);
+    const corniceBassa = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.62, 2.44), giallo);
+    corniceBassa.position.set(4.2, 0.87, 0);
+    bus.add(corniceBassa);
+    for (const z of [-1.11, 1.11]) {
+      const montante = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.94, 0.22), giallo);
+      montante.position.set(4.2, 1.72, z);
+      bus.add(montante);
+    }
+    const vetroFronte = new THREE.Mesh(new THREE.BoxGeometry(0.05, 1.2, 2.0), vetroBus);
+    vetroFronte.position.set(4.18, 1.72, 0);
+    bus.add(vetroFronte);
+
+    // guidatore al posto di guida
+    const guidatore = persona({pelle: 0xd9a97f, maglia: 0x3f6285, capelli: 0x3a2a20, altezza: 0.95, x: 3.55, z: 0.55});
+    guidatore.position.y = 0.62;
+    bus.add(guidatore);
+
+    const volante = new THREE.Mesh(
+      new THREE.TorusGeometry(0.16, 0.022, 8, 20),
+      new THREE.MeshStandardMaterial({color: 0x22262c, roughness: 0.6}),
+    );
+    volante.position.set(3.82, 1.16, 0.55);
+    volante.rotation.y = Math.PI / 2;
+    volante.rotation.z = 0.32;
+    bus.add(volante);
 
     const coda = new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.0, 2.44), giallo);
     coda.position.set(-4.2, 1.55, 0);
@@ -520,6 +604,33 @@ export function createCar() {
         busto.position.set(x, 1.34, lato * 0.92);
         bus.add(busto);
       }
+    }
+
+    // fiancate: SCUOLABUS e nome della scuola
+    const telaio = document.createElement('canvas');
+    telaio.width = 1024;
+    telaio.height = 180;
+    const tg = telaio.getContext('2d');
+    tg.clearRect(0, 0, 1024, 180);
+    tg.textAlign = 'center';
+    tg.textBaseline = 'middle';
+    tg.fillStyle = '#1b2a4a';
+    tg.font = 'bold 76px Inter, system-ui, sans-serif';
+    tg.fillText('SCUOLABUS', 512, 34);
+    tg.font = '600 34px Inter, system-ui, sans-serif';
+    tg.fillText('Scuola Media Statale Giovanni Pascoli', 512, 96);
+    tg.font = '600 30px Inter, system-ui, sans-serif';
+    tg.fillText("Pomigliano d'Arco (NA)", 512, 140);
+    const telaioTex = new THREE.CanvasTexture(telaio);
+    telaioTex.colorSpace = THREE.SRGBColorSpace;
+    for (const lato of [1, -1]) {
+      const p = new THREE.Mesh(
+        new THREE.PlaneGeometry(5.2, 0.92),
+        new THREE.MeshBasicMaterial({map: telaioTex, transparent: true, side: THREE.DoubleSide}),
+      );
+      p.position.set(-0.15, 1.12, lato * 1.256);
+      if (lato < 0) p.rotation.y = Math.PI;
+      bus.add(p);
     }
 
     // paraurti, fari, luci di ingombro
@@ -662,6 +773,7 @@ export function createCar() {
     carrozzeria.depthWrite = k < 0.35;
     carrozzeria.needsUpdate = true;
     vetro.opacity = 0.34 * (1 - k) + 0.05 * k;
+    for (const m of targhe) m.visible = k < 0.5;
     aggiornaVisibilita();
     motore.scale.setScalar(1 + 0.1 * k);
     motore.position.y = 0.44 + 0.3 * k;
@@ -681,8 +793,7 @@ export function createCar() {
   function update(angolo, t) {
     aggiornaFumo(t);
     if (stato.mezzo === 'elettrica') {
-      rotore.rotation.z = angolo;
-      for (const a of rotore.userData.alette || []) a.rotation.z = angolo + (a.userData.base ?? 0);
+      for (const m of motoriRuota) m.rotore.rotation.z = angolo;
       return;
     }
     for (let i = 0; i < 4; i++) {

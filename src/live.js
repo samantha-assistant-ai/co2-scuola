@@ -4,6 +4,7 @@ import {createStage} from 'teardown-kit/stage3d.js';
 import {createCar} from './car.js';
 import {createOverlay} from './overlay.js';
 import {createAudio} from './audio.js';
+import {SCIENZA, STEMISTA} from './assetimgs.js';
 import {co2, gPerKm, annuale, alberi, GIORNI_SCUOLA, MEZZI, MOTORI} from './model.js';
 
 const DEFAULTS = {
@@ -83,6 +84,7 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
     scene.add(m);
   }
 
+  const paesaggio = new THREE.Group();
   // ---- il paese: casette basse, tetti a punta, giardini e siepi ----
   const muri = ['#efe6d4', '#e7d5ba', '#dfe4d8', '#eadfc9', '#d9cfc0', '#e4d2b6'];
   const tetti = ['#a4543a', '#8c4a38', '#7a5a44', '#96573f', '#b06a4c'];
@@ -105,7 +107,7 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
       casa.position.set(x, h / 2, z);
       casa.castShadow = true;
       casa.receiveShadow = true;
-      scene.add(casa);
+      paesaggio.add(casa);
 
       // tetto a punta
       const tetto = new THREE.Mesh(
@@ -115,7 +117,7 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
       tetto.position.set(x, h + 0.9, z);
       tetto.rotation.y = Math.PI / 4;
       tetto.castShadow = true;
-      scene.add(tetto);
+      paesaggio.add(tetto);
 
       // comignolo
       if (seed % 2 === 0) {
@@ -124,7 +126,7 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
           new THREE.MeshStandardMaterial({color: 0xd8cbb8, roughness: 0.9}),
         );
         c.position.set(x + w * 0.22, h + 1.5, z);
-        scene.add(c);
+        paesaggio.add(c);
       }
 
       // giardino davanti a casa
@@ -132,13 +134,13 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
       giardino.rotation.x = -Math.PI / 2;
       giardino.position.set(x, 0.012, z - lato * (d / 2 + 2.4));
       giardino.receiveShadow = true;
-      scene.add(giardino);
+      paesaggio.add(giardino);
 
       // siepe sul confine del giardino
       const siepe = new THREE.Mesh(new THREE.BoxGeometry(w * 0.98, 0.8, 0.5), siepeMat);
       siepe.position.set(x, 0.4, z - lato * (d / 2 + 4.9));
       siepe.castShadow = true;
-      scene.add(siepe);
+      paesaggio.add(siepe);
     }
   }
 
@@ -150,7 +152,7 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
   campagna.rotation.x = -Math.PI / 2;
   campagna.position.set(0, -0.02, 0);
   campagna.receiveShadow = true;
-  scene.add(campagna);
+  paesaggio.add(campagna);
 
   // qualche albero per dare scala
   const tronco = new THREE.MeshStandardMaterial({color: 0x6b5442, roughness: 0.95});
@@ -162,12 +164,20 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
     const t = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.17, 2.0 * scala, 8), tronco);
     t.position.set(x, 1.0 * scala, z);
     t.castShadow = true;
-    scene.add(t);
+    paesaggio.add(t);
     const c = new THREE.Mesh(new THREE.SphereGeometry(1.05 * scala, 12, 12), chioma);
     c.position.set(x, 2.3 * scala, z);
     c.castShadow = true;
-    scene.add(c);
+    paesaggio.add(c);
   }
+
+  // due copie identiche: scorrendo e riavvolgendo non si vede la giunzione
+  const TILE = 135.2;
+  const copiaPaese = paesaggio.clone();
+  copiaPaese.position.x = TILE;
+  const paesaggioMobile = new THREE.Group();
+  paesaggioMobile.add(paesaggio, copiaPaese);
+  scene.add(paesaggioMobile);
 
   // tratteggi: si spostano per simulare il movimento
   const tratteggio = [];
@@ -179,33 +189,46 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
     tratteggio.push(d);
   }
 
-  // ---- cartelloni lungo la strada ----
+  // ---- cartelloni lungo la strada, con i loghi veri ----
   const cartelloni = [];
   const telaioPalo = new THREE.MeshStandardMaterial({color: 0x8a8f96, roughness: 0.6, metalness: 0.4});
 
-  function cartellone(testo, sfondo, testo2, x) {
+  function cartelloneLogo(immagine, sfondo, didascalia, x) {
     const c = document.createElement('canvas');
     c.width = 640;
     c.height = 320;
     const g = c.getContext('2d');
-    g.fillStyle = sfondo;
-    g.fillRect(0, 0, 640, 320);
-    g.strokeStyle = 'rgba(27,42,74,.85)';
-    g.lineWidth = 14;
-    g.strokeRect(7, 7, 626, 306);
-    g.textAlign = 'center';
-    g.textBaseline = 'middle';
-    if (testo2) {
-      g.fillStyle = testo2;
-      g.font = 'bold 74px Inter, system-ui, sans-serif';
-      g.fillText(testo, 320, 150);
-    } else {
-      g.fillStyle = '#ffffff';
-      g.font = 'bold 66px Inter, system-ui, sans-serif';
-      g.fillText(testo, 320, 150);
-    }
     const tex = new THREE.CanvasTexture(c);
     tex.colorSpace = THREE.SRGBColorSpace;
+
+    const disegna = (img) => {
+      g.fillStyle = sfondo;
+      g.fillRect(0, 0, 640, 320);
+      if (img) {
+        const maxW = 560;
+        const maxH = didascalia ? 190 : 220;
+        const r = Math.min(maxW / img.width, maxH / img.height);
+        const w = img.width * r;
+        const h = img.height * r;
+        g.drawImage(img, (640 - w) / 2, 34 + (maxH - h) / 2, w, h);
+      }
+      if (didascalia) {
+        g.fillStyle = '#c8322a';
+        g.font = 'bold 36px Inter, system-ui, sans-serif';
+        g.textAlign = 'center';
+        g.textBaseline = 'middle';
+        g.fillText(didascalia, 320, 272);
+      }
+      g.strokeStyle = 'rgba(27,42,74,.85)';
+      g.lineWidth = 14;
+      g.strokeRect(7, 7, 626, 306);
+      tex.needsUpdate = true;
+    };
+
+    disegna(null);
+    const img = new Image();
+    img.onload = () => disegna(img);
+    img.src = immagine;
 
     const gruppo = new THREE.Group();
     const pannello = new THREE.Mesh(
@@ -215,9 +238,9 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
     pannello.position.y = 3.4;
     gruppo.add(pannello);
 
-    for (const dx of [-1.5, 1.5]) {
-      const palo = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 2.1, 8), telaioPalo);
-      palo.position.set(dx, 1.05, -0.08);
+    for (const dx of [-1.7, 1.7]) {
+      const palo = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 2.2, 8), telaioPalo);
+      palo.position.set(dx, 1.1, -0.08);
       gruppo.add(palo);
     }
 
@@ -226,9 +249,9 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
     cartelloni.push(gruppo);
   }
 
-  cartellone('LA SCIENZA MERITA', '#f6c445', null, 4);
-  cartellone('Evviva gli stemisti Ribelli', '#fff6e0', '#c8322a', 34);
-  cartellone('LA SCIENZA MERITA', '#f6c445', null, 64);
+  cartelloneLogo(SCIENZA, '#fff6e0', null, 4);
+  cartelloneLogo(STEMISTA, '#fffdf6', 'Evviva gli stemisti Ribelli', 36);
+  cartelloneLogo(SCIENZA, '#fff6e0', null, 66);
 
   // ---- l'auto ----
   const auto = createCar();
@@ -297,11 +320,13 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
       audio.ensure();
       audio.setTraccia(nome === 'nessuna' ? 'nessuna' : nome);
     },
-    onToggleAudio: () => {
+    onToggleMusica: () => {
       audio.ensure();
-      const on = audio.toggle();
-      if (on) audio.setVeicolo(stato.mezzo, stato.motore);
-      return on;
+      return audio.toggleMusica();
+    },
+    onToggleMotore: () => {
+      audio.ensure();
+      return audio.toggleMotore();
     },
   });
 
@@ -422,6 +447,8 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
       c.position.x -= vel;
       if (c.position.x < -72) c.position.x += 130;
     }
+    paesaggioMobile.position.x -= vel;
+    if (paesaggioMobile.position.x < -TILE) paesaggioMobile.position.x += TILE;
 
     // camera
     const k = stato.cut;
