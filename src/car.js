@@ -52,8 +52,11 @@ function persona({ pelle, maglia, altezza = 1, z, x }) {
 export function createCar() {
   const root = new THREE.Group();
 
+  const autoCompleta = new THREE.Group();
+  root.add(autoCompleta);
+
   const guscio = new THREE.Group();
-  root.add(guscio);
+  autoCompleta.add(guscio);
 
   const vetro = new THREE.MeshPhysicalMaterial({
     color: 0xa8c8dd,
@@ -141,7 +144,7 @@ export function createCar() {
       }
       w.add(g, c);
       w.position.set(x, 0.34, z);
-      root.add(w);
+      autoCompleta.add(w);
       ruote.push(w);
     }
   }
@@ -151,7 +154,7 @@ export function createCar() {
   const bimbo = persona({pelle: 0xe0b48c, maglia: 0xd2622a, altezza: 0.72, x: -0.62, z: 0.40});
   papa.position.y = 0.72;
   bimbo.position.y = 0.70;
-  root.add(papa, bimbo);
+  autoCompleta.add(papa, bimbo);
 
   // ---- scarico: tubo e nuvolette ----
   const tubo = new THREE.Mesh(
@@ -160,7 +163,7 @@ export function createCar() {
   );
   tubo.geometry.rotateZ(Math.PI / 2);
   tubo.position.set(-2.05, 0.30, 0.46);
-  root.add(tubo);
+  autoCompleta.add(tubo);
 
   const textureFumo = (() => {
     const c = document.createElement('canvas');
@@ -194,19 +197,22 @@ export function createCar() {
     nuvole.push(sp);
   }
 
-  const scarico = {attivo: true, intensita: 0.46, colore: 0xa8a8a8};
+  const scarico = {attivo: true, intensita: 0.46, colore: 0xa8a8a8, base: [-2.12, 0.30, 0.46]};
 
-  function setScarico(mezzo) {
-    if (mezzo === 'elettrica') {
+  function setScarico(mezzo, tipoFumo = 'normale') {
+    if (tipoFumo === 'nessuno') {
       scarico.attivo = false;
       scarico.intensita = 0;
       for (const n of nuvole) n.material.opacity = 0;
       return;
     }
     scarico.attivo = true;
-    if (mezzo === 'diesel') {
+    if (tipoFumo === 'denso') {
       scarico.colore = 0x2a2a2a;
       scarico.intensita = 1.0;
+    } else if (tipoFumo === 'leggero') {
+      scarico.colore = 0x8d8d8d;
+      scarico.intensita = 0.45;
     } else {
       scarico.colore = 0x5c5c5c;
       scarico.intensita = 0.86;
@@ -222,9 +228,9 @@ export function createCar() {
       if (!scarico.attivo) continue;
       const fase = ((t / CICLO) + i / NUVOLE) % 1;
       sp.position.set(
-        -2.22 - fase * 2.7,
-        0.34 + fase * 1.85 + Math.sin(i * 7.3) * 0.06,
-        0.46 + Math.sin(i * 3.1) * 0.13 * (0.3 + fase),
+        scarico.base[0] - fase * 2.7,
+        scarico.base[1] + 0.04 + fase * 1.85 + Math.sin(i * 7.3) * 0.06,
+        scarico.base[2] + Math.sin(i * 3.1) * 0.13 * (0.3 + fase),
       );
       const s = 0.26 + fase * 0.9;
       sp.scale.set(s, s, s);
@@ -235,7 +241,7 @@ export function createCar() {
   // ---- motore ----
   const motore = new THREE.Group();
   motore.position.set(1.32, 0.44, 0);
-  root.add(motore);
+  autoCompleta.add(motore);
 
   const alluminio = new THREE.MeshStandardMaterial({
     color: 0xb7bfc7,
@@ -361,7 +367,89 @@ export function createCar() {
   }
   motore.add(elettrico);
 
-  const stato = {cutaway: 0, colore: 'benzina', mezzo: 'benzina'};
+  // ---- autobus ----
+  const bus = new THREE.Group();
+  bus.visible = false;
+  {
+    const giallo = new THREE.MeshStandardMaterial({color: 0xf2b32a, roughness: 0.55, metalness: 0.1});
+    const scuro = new THREE.MeshStandardMaterial({color: 0x2f3f52, roughness: 0.25, metalness: 0.35});
+    const corpo = new THREE.Mesh(new THREE.BoxGeometry(7.4, 1.95, 2.3), giallo);
+    corpo.position.y = 1.35;
+    corpo.castShadow = true;
+    bus.add(corpo);
+    const fascia = new THREE.Mesh(new THREE.BoxGeometry(6.5, 0.62, 2.34), scuro);
+    fascia.position.set(-0.15, 1.74, 0);
+    bus.add(fascia);
+    const parabrezza = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.85, 2.0), scuro);
+    parabrezza.position.set(3.68, 1.6, 0);
+    bus.add(parabrezza);
+    for (const x of [2.45, -2.15]) {
+      for (const z of [-1.14, 1.14]) {
+        const w = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.46, 0.46, 0.3, 20),
+          new THREE.MeshStandardMaterial({color: 0x14161a, roughness: 0.9}),
+        );
+        w.rotation.x = Math.PI / 2;
+        w.position.set(x, 0.46, z);
+        w.castShadow = true;
+        bus.add(w);
+      }
+    }
+  }
+  root.add(bus);
+
+  // ---- bicicletta ----
+  const bici = new THREE.Group();
+  bici.visible = false;
+  {
+    const telaioMat = new THREE.MeshStandardMaterial({color: 0x3a6ea5, roughness: 0.35, metalness: 0.7});
+    const gommaMat = new THREE.MeshStandardMaterial({color: 0x18181a, roughness: 0.85});
+    for (const x of [0.52, -0.52]) {
+      const r = new THREE.Mesh(new THREE.TorusGeometry(0.33, 0.032, 8, 26), gommaMat);
+      r.position.set(x, 0.33, 0);
+      bici.add(r);
+    }
+    const tubo = (x1, y1, x2, y2) => {
+      const len = Math.hypot(x2 - x1, y2 - y1);
+      const m = new THREE.Mesh(new THREE.BoxGeometry(len, 0.045, 0.045), telaioMat);
+      m.position.set((x1 + x2) / 2, (y1 + y2) / 2, 0);
+      m.rotation.z = Math.atan2(y2 - y1, x2 - x1);
+      bici.add(m);
+    };
+    tubo(-0.52, 0.33, 0.1, 0.72);
+    tubo(0.1, 0.72, 0.52, 0.33);
+    tubo(-0.52, 0.33, 0.1, 0.33);
+    tubo(0.1, 0.33, 0.1, 0.72);
+    tubo(0.1, 0.72, 0.45, 0.78);
+    const sellino = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.05, 0.1), telaioMat);
+    sellino.position.set(-0.02, 0.78, 0);
+    bici.add(sellino);
+  }
+  root.add(bici);
+
+  const stato = {cutaway: 0, colore: 'benzina', mezzo: 'benzina', veicolo: 'media'};
+
+  function aggiornaVisibilita() {
+    const isBus = stato.veicolo === 'autobus';
+    const isBici = stato.veicolo === 'bicicletta';
+    bus.visible = isBus;
+    bici.visible = isBici;
+    autoCompleta.visible = !isBus && !isBici;
+    guscio.visible = !isBus && !isBici && stato.cutaway < 0.98;
+    motore.visible = !isBici;
+    combustione.visible = !isBici && stato.mezzo !== 'elettrica' && !isBus;
+    elettrico.visible = !isBici && stato.mezzo === 'elettrica' && !isBus;
+    papa.visible = !isBus && !isBici;
+    bimbo.visible = !isBus && !isBici;
+  }
+
+  function setVeicolo(tipo, scala = 1) {
+    stato.veicolo = tipo;
+    scarico.base = tipo === 'autobus' ? [-3.85, 0.55, 0.95] : [-2.12, 0.30, 0.46];
+    root.scale.setScalar(scala);
+    aggiornaVisibilita();
+    setCutaway(stato.cutaway);
+  }
 
   function setCutaway(k) {
     stato.cutaway = k;
@@ -369,7 +457,7 @@ export function createCar() {
     carrozzeria.opacity = 1 - 0.86 * k;
     carrozzeria.needsUpdate = true;
     vetro.opacity = 0.34 * (1 - k) + 0.05 * k;
-    guscio.visible = k < 0.98;
+    aggiornaVisibilita();
     // vista esplosa: il motore sale e si ingrandisce
     motore.scale.setScalar(1 + 0.1 * k);
     motore.position.y = 0.44 + 0.3 * k;
@@ -382,9 +470,7 @@ export function createCar() {
 
   function setMotore(mezzo) {
     stato.mezzo = mezzo;
-    const elettrica = mezzo === 'elettrica';
-    combustione.visible = !elettrica;
-    elettrico.visible = elettrica;
+    aggiornaVisibilita();
   }
 
   /** angolo di manovella in radianti */
@@ -413,5 +499,5 @@ export function createCar() {
     for (const r of ruote) r.rotation.z -= vel;
   }
 
-  return {root, motore, guscio, update, setCutaway, setColore, setMotore, setScarico, giraRuote, stato, pistoni};
+  return {root, motore, guscio, update, setCutaway, setColore, setMotore, setScarico, setVeicolo, giraRuote, stato, pistoni};
 }

@@ -3,7 +3,7 @@ import {runSim} from 'teardown-kit/runtime.js';
 import {createStage} from 'teardown-kit/stage3d.js';
 import {createCar} from './car.js';
 import {createOverlay} from './overlay.js';
-import {co2, consumo, FATTORI, annuale, GIORNI_SCUOLA} from './model.js';
+import {co2, gPerKm, annuale, alberi, GIORNI_SCUOLA, MEZZI, MOTORI} from './model.js';
 
 const DEFAULTS = {
   duration: 9999,
@@ -13,9 +13,6 @@ const DEFAULTS = {
   hud: {enabled: false},
   director: {enabled: false},
 };
-
-const MEZZI = ['benzina', 'diesel', 'elettrica'];
-const COLORI = {benzina: '#e8743a', diesel: '#5b87b3', elettrica: '#47b985'};
 
 runSim(DEFAULTS, async ({canvas, hud}) => {
   document.title = 'La Scienza Merita · Il viaggio casa → scuola';
@@ -196,7 +193,8 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
 
   // ---- stato ----
   const stato = {
-    mezzo: 'benzina',
+    mezzo: 'media',
+    motore: 'benzina',
     km: 3,
     cutTarget: 0,
     cut: 0,
@@ -208,10 +206,15 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
 
   // parametri per il docente: ?mezzo=elettrica&km=5&cut=1
   const q = new URLSearchParams(location.search);
-  if (q.get('mezzo') && MEZZI.includes(q.get('mezzo'))) stato.mezzo = q.get('mezzo');
+  if (q.get('mezzo') && MEZZI[q.get('mezzo')]) stato.mezzo = q.get('mezzo');
+  if (q.get('motore') && MOTORI[q.get('motore')] && MEZZI[stato.mezzo].motori.includes(q.get('motore'))) {
+    stato.motore = q.get('motore');
+  } else if (!MEZZI[stato.mezzo].motori.includes(stato.motore)) {
+    stato.motore = MEZZI[stato.mezzo].motori[0] ?? 'muscolare';
+  }
   if (q.get('km')) stato.km = Math.max(1, Math.min(12, Number(q.get('km')) || 3));
   if (q.get('cut') === '1') stato.cutTarget = 1;
-  if (q.has('mezzo') || q.has('km') || q.has('cut')) {
+  if (q.has('mezzo') || q.has('motore') || q.has('km') || q.has('cut')) {
     stato.tour = false;
     stato.idle = 0;
   }
@@ -219,9 +222,15 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
   const overlay = createOverlay({
     onMezzo: (m) => {
       stato.mezzo = m;
-      auto.setColore(m);
-      auto.setMotore(m);
-      auto.setScarico(m);
+      const disp = MEZZI[m].motori;
+      if (disp.length && !disp.includes(stato.motore)) stato.motore = disp[0];
+      applicaVeicolo();
+      interagisci();
+    },
+    onMotore: (m) => {
+      if (!MEZZI[stato.mezzo].motori.includes(m)) return;
+      stato.motore = m;
+      applicaVeicolo();
       interagisci();
     },
     onKm: (v) => {
@@ -234,9 +243,16 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
     },
   });
 
-  auto.setColore(stato.mezzo);
-  auto.setMotore(stato.mezzo);
-  auto.setScarico(stato.mezzo);
+  function applicaVeicolo() {
+    const m = MEZZI[stato.mezzo];
+    auto.setVeicolo(stato.mezzo, m.scala);
+    auto.setColore(stato.motore);
+    auto.setMotore(stato.motore);
+    const bici = stato.mezzo === 'bicicletta';
+    auto.setScarico(stato.motore, bici ? 'nessuno' : (MOTORI[stato.motore]?.fumo ?? 'nessuno'));
+  }
+
+  applicaVeicolo();
   auto.setCutaway(stato.cutTarget);
 
   function interagisci() {
@@ -245,7 +261,13 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
     stato.tourTimer = 0;
   }
 
-  const ORDINE_TOUR = ['benzina', 'elettrica', 'diesel', 'benzina', 'elettrica', 'benzina'];
+  const ORDINE_TOUR = [
+    ['utilitaria', 'benzina'],
+    ['suv', 'elettrica'],
+    ['autobus', 'diesel'],
+    ['bicicletta', 'benzina'],
+    ['media', 'ibrido'],
+  ];
 
   // camera: 3/4, si avvicina quando il motore è aperto
   const camBase = new THREE.Vector3(5.6, 2.55, 7.0);
@@ -271,12 +293,11 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
       if (stato.tourTimer > 5.5) {
         stato.tourTimer = 0;
         stato.tourStep++;
-        const m = ORDINE_TOUR[stato.tourStep % ORDINE_TOUR.length];
-        stato.mezzo = m;
-        auto.setColore(m);
-        auto.setMotore(m);
-        auto.setScarico(m);
-        stato.cutTarget = stato.tourStep % 3 === 2 ? 1 : 0;
+        const [mz, mt] = ORDINE_TOUR[stato.tourStep % ORDINE_TOUR.length];
+        stato.mezzo = mz;
+        stato.motore = MEZZI[mz].motori.includes(mt) ? mt : (MEZZI[mz].motori[0] ?? mt);
+        applicaVeicolo();
+        stato.cutTarget = stato.tourStep % 4 === 1 ? 1 : 0;
       }
     } else {
       stato.idle += dt;
@@ -307,26 +328,26 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
     camera.lookAt(guarda);
 
     // numeri
-    const totale = co2(stato.mezzo, stato.km);
+    const totale = co2(stato.mezzo, stato.motore, stato.km);
     const valori = {};
-    for (const m of MEZZI) valori[m] = co2(m, stato.km);
-    const cons = consumo(stato.mezzo, stato.km);
-    const f = FATTORI[stato.mezzo];
-
-    let nota;
-    if (stato.mezzo === 'elettrica') {
-      nota = `${cons.toFixed(2)} kWh dalla rete · ${f.fattore} g CO₂ per kWh`;
-    } else {
-      nota = `${cons.toFixed(2)} L di ${f.nome.toLowerCase()} · ${(f.fattore / 1000).toFixed(2)} kg CO₂/L`;
+    for (const [id, m] of Object.entries(MEZZI)) {
+      const mot = m.motori.includes(stato.motore) ? stato.motore : (m.motori[0] ?? 'muscolare');
+      valori[id] = co2(id, mot, stato.km);
     }
+    const g = gPerKm(stato.mezzo, stato.motore);
+    const nota = `${g} g CO₂ per km`;
+
+    const ann = annuale(stato.mezzo, stato.motore, stato.km);
 
     overlay.update({
       totale,
       km: stato.km,
       mezzo: stato.mezzo,
+      motore: stato.motore,
       valori,
       nota,
-      annuale: annuale(stato.mezzo, stato.km),
+      annuale: ann,
+      alberi: alberi(ann.anno),
       giorni: GIORNI_SCUOLA,
       cutaway: stato.cutTarget > 0.5,
       tour: stato.tour,

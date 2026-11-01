@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Un giorno a scuola · La Scienza Merita</title>
+<meta name="description" content="Un giorno a scuola: quanta CO2 produce il viaggio casa-scuola? Simulazione interattiva per la scuola secondaria di primo grado.">
+<style>
+  :root{
+    --carta:#fffaf0; --inchiostro:#1b2a4a; --giallo:#f6c445; --rosso:#c8322a; --verde:#4e8a4a;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:
+      radial-gradient(1200px 600px at 85% -10%, rgba(246,196,69,.35), transparent 60%),
+      radial-gradient(900px 500px at -10% 100%, rgba(78,138,74,.22), transparent 60%),
+      var(--carta);
+    color:var(--inchiostro);
+    font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+    min-height:100%;
+    display:flex; align-items:center; justify-content:center;
+    padding:clamp(16px,3vw,44px);
+  }
+  .foglio{
+    width:min(1180px,100%);
+    background:rgba(255,253,247,.92);
+    border:3px solid var(--inchiostro);
+    border-radius:28px;
+    box-shadow:10px 12px 0 rgba(27,42,74,.16);
+    padding:clamp(18px,3vw,40px);
+    position:relative;
+    overflow:hidden;
+  }
+  .puntini{position:absolute;inset:0;pointer-events:none;opacity:.5}
+  .loghi{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:clamp(14px,2vw,26px)}
+  .loghi img{height:clamp(38px,5vw,58px);width:auto;border-radius:10px;border:1.5px solid rgba(27,42,74,.12);background:#fff;padding:4px}
+  .griglia{display:grid;grid-template-columns:1.15fr .85fr;gap:clamp(18px,3vw,44px);align-items:center}
+  .occhiello{font-size:clamp(11px,1.1vw,14px);letter-spacing:.2em;text-transform:uppercase;font-weight:800;color:var(--rosso)}
+  h1{font-size:clamp(34px,5.2vw,68px);line-height:.98;letter-spacing:-.03em;margin:.35em 0 .25em;font-weight:800}
+  h1 em{font-style:normal;color:var(--rosso)}
+  .sommario{font-size:clamp(15px,1.35vw,20px);line-height:1.5;color:rgba(27,42,74,.78);font-weight:500;max-width:46ch}
+  ul{list-style:none;padding:0;margin:clamp(14px,2vw,24px) 0 0;display:grid;gap:10px}
+  li{display:flex;gap:10px;align-items:flex-start;font-size:clamp(13px,1.15vw,17px);font-weight:600;color:rgba(27,42,74,.8)}
+  li .pallino{flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:var(--giallo);border:2px solid var(--inchiostro);display:grid;place-items:center;font-size:12px}
+  .via{
+    display:inline-flex;align-items:center;gap:12px;margin-top:clamp(18px,2.4vw,32px);
+    background:var(--giallo);color:var(--inchiostro);text-decoration:none;
+    border:3px solid var(--inchiostro);border-radius:16px;
+    padding:clamp(12px,1.3vw,18px) clamp(20px,2.4vw,34px);
+    font-size:clamp(17px,1.6vw,24px);font-weight:800;letter-spacing:-.01em;
+    box-shadow:6px 6px 0 rgba(27,42,74,.2);transition:transform .12s,box-shadow .12s;
+  }
+  .via:hover{transform:translate(-1px,-1px);box-shadow:8px 8px 0 rgba(27,42,74,.22)}
+  .via:active{transform:translate(3px,3px);box-shadow:2px 2px 0 rgba(27,42,74,.2)}
+  .illu{position:relative}
+  .illu img{width:100%;height:auto;display:block;border-radius:22px;border:3px solid var(--inchiostro);box-shadow:8px 8px 0 rgba(27,42,74,.14)}
+  .didascalia{margin-top:10px;font-size:clamp(11px,1vw,13px);color:rgba(27,42,74,.6);font-weight:600}
+  footer{margin-top:clamp(18px,2.4vw,30px);padding-top:14px;border-top:2px dashed rgba(27,42,74,.18);
+    font-size:clamp(11px,1vw,13px);color:rgba(27,42,74,.55);font-weight:600;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  @media (max-width:820px){
+    .griglia{grid-template-columns:1fr}
+    .illu{order:-1}
+  }
+</style>
+</head>
+<body>
+  <main class="foglio">
+    <div class="loghi">
+      <img src="assets/scienza.jpg" alt="La Scienza Merita">
+      <img src="assets/stemista.jpg" alt="Stemista Ribelle">
+      <img src="assets/elefante.jpg" alt="L'Elefante Invisibile">
+    </div>
+
+    <div class="griglia">
+      <div>
+        <div class="occhiello">La Scienza Merita presenta</div>
+        <h1>Un giorno<br>a <em>scuola</em></h1>
+        <p class="sommario">
+          Ogni mattina qualcuno ti porta a scuola. Quel viaggio lascia nell'aria
+          una piccola nube di CO₂: piccola oggi, enorme se la moltiplichi per tutti
+          i giorni di un anno.
+        </p>
+        <ul>
+          <li><span class="pallino">1</span><span>Scegli il mezzo: utilitaria, auto, SUV, autobus o bicicletta.</span></li>
+          <li><span class="pallino">2</span><span>Imposta la distanza da casa a scuola.</span></li>
+          <li><span class="pallino">3</span><span>Guarda quanta CO₂ esce davvero dallo scarico — e quanti alberi servirebbero per assorbirla.</span></li>
+        </ul>
+        <a class="via" href="sim.html">Entra nella simulazione <span aria-hidden="true">→</span></a>
+      </div>
+
+      <div class="illu">
+        <img src="assets/gruppo.jpg" alt="Marta e i quattro studenti del gruppo">
+        <div class="didascalia">Marta e i quattro studenti · Il gruppo di <strong>Stemista Ribelle</strong></div>
+      </div>
+    </div>
+
+    <footer>
+      <span>La Scienza Merita · Stemista Ribelle · L'Elefante Invisibile — <em>Viaggi a Impronta Zero</em></span>
+      <span>Lezione per la scuola secondaria di primo grado</span>
+    </footer>
+  </main>
+</body>
+</html>
