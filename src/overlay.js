@@ -1,53 +1,59 @@
 // L'interfaccia per la classe: testo grande, italiano semplice, tre scelte.
-// Niente gergo tecnico: chi ha 12 anni deve capire in tre secondi.
+// Pannelli chiari semitrasparenti: leggono su cielo, palazzi o strada.
 
 const CSS = `
-#ui { position: fixed; inset: 0; pointer-events: none; font-family: 'Inter', system-ui, sans-serif; color: #f4f1ea; }
-#ui .titolo { position: absolute; left: 4.2vmin; top: 3.6vmin; max-width: 46vmin; }
-#ui .eyebrow { font-size: clamp(11px, 1.35vmin, 16px); letter-spacing: .18em; text-transform: uppercase; color: #ffb27a; font-weight: 600; }
-#ui h1 { font-size: clamp(22px, 3.6vmin, 46px); line-height: 1.05; margin: .6vmin 0 0; font-weight: 700; letter-spacing: -.02em; }
-#ui .domanda { margin-top: 1.4vmin; font-size: clamp(13px, 1.75vmin, 22px); color: rgba(244,241,234,.68); font-weight: 400; }
-
-#ui .numero {
-  position: absolute; right: 4.2vmin; top: 6vmin; text-align: right;
+#ui { position: fixed; inset: 0; pointer-events: none; font-family: 'Inter', system-ui, sans-serif; color: #12202c; }
+#ui .pannello {
+  background: rgba(255,255,255,.82);
+  backdrop-filter: blur(14px) saturate(1.1);
+  border: 1px solid rgba(255,255,255,.85);
+  box-shadow: 0 6px 26px rgba(18,32,44,.1);
+  border-radius: 1.8vmin;
 }
-#ui .numero .val { font-size: clamp(42px, 9vmin, 118px); font-weight: 800; letter-spacing: -.045em; line-height: .92; color: #fff; }
-#ui .numero .val small { font-size: .34em; font-weight: 600; letter-spacing: 0; margin-left: .12em; color: #ffb27a; }
-#ui .numero .cap { margin-top: 1vmin; font-size: clamp(12px, 1.5vmin, 18px); color: rgba(244,241,234,.72); }
-#ui .numero .cap b { color: #fff; font-weight: 600; }
 
-#ui .controlli {
-  position: absolute; left: 4.2vmin; right: 4.2vmin; bottom: 3.4vmin;
-  display: flex; gap: 2.4vmin; align-items: flex-end; pointer-events: auto;
-  flex-wrap: wrap;
-}
-#ui .mezzi { display: flex; gap: 1.2vmin; }
-#ui .mezzo {
-  appearance: none; border: 1px solid rgba(244,241,234,.22); background: rgba(12,14,18,.72);
-  color: #f4f1ea; border-radius: 1.6vmin; padding: 1.5vmin 2.2vmin; cursor: pointer;
-  font: inherit; font-size: clamp(13px, 1.7vmin, 21px); font-weight: 600; letter-spacing: -.01em;
-  display: flex; align-items: center; gap: 1vmin; transition: border-color .15s, background .15s, transform .12s;
-  backdrop-filter: blur(8px);
-}
-#ui .mezzo:hover { border-color: rgba(244,241,234,.45); }
-#ui .mezzo:active { transform: translateY(1px); }
-#ui .mezzo[aria-pressed='true'] { border-color: #ffb27a; background: rgba(255,178,122,.16); }
-#ui .mezzo .ic { font-size: 1.25em; line-height: 1; }
+#ui .titolo { position: absolute; left: 4.2vmin; top: 3.6vmin; max-width: 48vmin; padding: 2.1vmin 2.5vmin; }
+#ui .eyebrow { font-size: clamp(11px, 1.35vmin, 16px); letter-spacing: .18em; text-transform: uppercase; color: #c4561c; font-weight: 700; }
+#ui h1 { font-size: clamp(22px, 3.5vmin, 44px); line-height: 1.05; margin: .6vmin 0 0; font-weight: 700; letter-spacing: -.02em; color: #0d1a24; }
+#ui .domanda { margin-top: 1.4vmin; font-size: clamp(13px, 1.7vmin, 21px); color: rgba(18,32,44,.68); font-weight: 500; }
 
-#ui .distanza { flex: 1 1 260px; min-width: 220px; }
-#ui .distanza label { display: block; font-size: clamp(12px, 1.5vmin, 18px); color: rgba(244,241,234,.72); margin-bottom: .8vmin; }
-#ui .distanza label b { color: #fff; }
-#ui input[type='range'] { width: 100%; height: 3.6vmin; accent-color: #ffb27a; cursor: pointer; }
+#ui .scheda { position: absolute; right: 4.2vmin; top: 4.2vmin; width: min(40vmin, 430px); padding: 2.2vmin 2.4vmin; text-align: right; }
+#ui .numero .val { font-size: clamp(42px, 8.4vmin, 110px); font-weight: 800; letter-spacing: -.045em; line-height: .92; color: #0d1a24; }
+#ui .numero .val small { font-size: .34em; font-weight: 700; letter-spacing: 0; margin-left: .12em; color: #c4561c; }
+#ui .numero .cap { margin-top: .8vmin; font-size: clamp(12px, 1.45vmin, 18px); color: rgba(18,32,44,.7); }
+#ui .numero .cap b { color: #0d1a24; font-weight: 600; }
 
-#ui .barre { position: absolute; right: 4.2vmin; top: 26vmin; width: min(34vmin, 380px); pointer-events: none; }
-#ui .barra { margin-bottom: 1.5vmin; }
-#ui .barra .riga { display: flex; justify-content: space-between; font-size: clamp(11px, 1.35vmin, 16px); color: rgba(244,241,234,.66); margin-bottom: .5vmin; }
-#ui .barra .riga b { color: #fff; font-weight: 600; }
-#ui .barra .track { height: 1.1vmin; border-radius: 99px; background: rgba(244,241,234,.12); overflow: hidden; }
+#ui .barre { margin-top: 2vmin; }
+#ui .barra { margin-top: 1.3vmin; }
+#ui .barra .riga { display: flex; justify-content: space-between; font-size: clamp(11px, 1.3vmin, 16px); color: rgba(18,32,44,.72); margin-bottom: .45vmin; font-weight: 500; }
+#ui .barra .riga b { color: #0d1a24; font-weight: 700; }
+#ui .barra .track { height: 1.05vmin; border-radius: 99px; background: rgba(18,32,44,.12); overflow: hidden; }
 #ui .barra .fill { height: 100%; border-radius: 99px; transition: width .35s cubic-bezier(.3,.7,.2,1); }
 
-#ui .nota { position: absolute; left: 4.2vmin; bottom: 15.5vmin; font-size: clamp(10px, 1.2vmin, 14px); color: rgba(244,241,234,.42); max-width: 52vmin; }
-#ui .tour { position: absolute; left: 50%; transform: translateX(-50%); bottom: 13.2vmin; font-size: clamp(11px, 1.3vmin, 16px); color: rgba(244,241,234,.5); opacity: 0; transition: opacity .4s; }
+#ui .controlli {
+  position: absolute; left: 4.2vmin; right: 4.2vmin; bottom: 3.2vmin;
+  display: flex; gap: 2.2vmin; align-items: flex-end; pointer-events: auto;
+  flex-wrap: wrap; padding: 1.6vmin 1.8vmin;
+}
+#ui .mezzi { display: flex; gap: 1.1vmin; }
+#ui .mezzo {
+  appearance: none; border: 1px solid rgba(18,32,44,.18); background: rgba(255,255,255,.92);
+  color: #12202c; border-radius: 1.4vmin; padding: 1.4vmin 2.1vmin; cursor: pointer;
+  font: inherit; font-size: clamp(13px, 1.65vmin, 20px); font-weight: 600; letter-spacing: -.01em;
+  display: flex; align-items: center; gap: 1vmin; transition: border-color .15s, background .15s, transform .12s;
+}
+#ui .mezzo:hover { border-color: rgba(18,32,44,.42); background: #fff; }
+#ui .mezzo:active { transform: translateY(1px); }
+#ui .mezzo[aria-pressed='true'] { border-color: #c4561c; background: rgba(196,86,28,.14); }
+
+#ui .distanza { flex: 1 1 260px; min-width: 220px; padding-bottom: .2vmin; }
+#ui .distanza label { display: block; font-size: clamp(12px, 1.4vmin, 17px); color: rgba(18,32,44,.72); margin-bottom: .6vmin; font-weight: 500; }
+#ui .distanza label b { color: #0d1a24; font-weight: 700; }
+#ui input[type='range'] { width: 100%; height: 3.2vmin; accent-color: #c4561c; cursor: pointer; }
+
+#ui .nota { position: absolute; left: 4.2vmin; bottom: 16.2vmin; font-size: clamp(10px, 1.2vmin, 14px); color: rgba(18,32,44,.62); max-width: 54vmin; font-weight: 500;
+  background: rgba(255,255,255,.7); padding: .7vmin 1.1vmin; border-radius: 1vmin; backdrop-filter: blur(8px); }
+#ui .tour { position: absolute; left: 50%; transform: translateX(-50%); bottom: 13.6vmin; font-size: clamp(11px, 1.3vmin, 16px); color: rgba(18,32,44,.62);
+  background: rgba(255,255,255,.72); padding: .7vmin 1.4vmin; border-radius: 99px; backdrop-filter: blur(8px); opacity: 0; transition: opacity .4s; }
 #ui .tour.on { opacity: 1; }
 `;
 
@@ -68,19 +74,24 @@ export function createOverlay({onMezzo, onKm, onCut}) {
   const root = document.createElement('div');
   root.id = 'ui';
   root.innerHTML = `
-    <div class="titolo">
-      <div class="eyebrow">Lezione · effetto serra</div>
+    <div class="pannello titolo">
+      <div class="eyebrow">La Scienza Merita · lezione</div>
       <h1>Il viaggio<br/>casa → scuola</h1>
       <div class="domanda">Quanta CO₂ finisce nell'aria?</div>
     </div>
-    <div class="numero">
-      <div class="val"><span id="n">486</span><small>g</small></div>
-      <div class="cap">di CO₂ per <b id="km-txt">3 km</b></div>
+
+    <div class="pannello scheda">
+      <div class="numero">
+        <div class="val"><span id="n">485</span><small>g</small></div>
+        <div class="cap">di CO₂ per <b id="km-txt">3 km</b></div>
+      </div>
+      <div class="barre" id="barre"></div>
     </div>
-    <div class="barre" id="barre"></div>
+
     <div class="nota" id="nota"></div>
     <div class="tour" id="tour">modalità dimostrazione · tocca per provare</div>
-    <div class="controlli">
+
+    <div class="pannello controlli">
       <div class="mezzi" id="mezzi"></div>
       <div class="distanza">
         <label>Distanza: <b id="km-lab">3 km</b></label>

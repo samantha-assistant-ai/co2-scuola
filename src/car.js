@@ -12,16 +12,17 @@ const COLORE_CARROZZERIA = {
 
 const profilo = () => {
   const p = new THREE.Shape();
-  p.moveTo(2.10, 0.30);
-  p.lineTo(2.10, 0.74);
-  p.lineTo(1.82, 0.86);
-  p.lineTo(0.75, 0.90);
-  p.lineTo(0.35, 1.34);
-  p.lineTo(-0.45, 1.38);
-  p.lineTo(-1.05, 1.02);
-  p.lineTo(-1.85, 0.94);
-  p.lineTo(-2.10, 0.78);
-  p.lineTo(-2.10, 0.30);
+  p.moveTo(2.02, 0.28);
+  p.lineTo(2.02, 0.66);
+  p.lineTo(1.62, 0.80);
+  p.lineTo(0.86, 0.84);
+  p.lineTo(0.42, 1.30);
+  p.lineTo(-0.95, 1.34);
+  p.lineTo(-1.52, 1.18);
+  p.lineTo(-1.58, 0.92);
+  p.lineTo(-1.72, 0.72);
+  p.lineTo(-2.02, 0.66);
+  p.lineTo(-2.02, 0.28);
   p.closePath();
   return p;
 };
@@ -63,10 +64,10 @@ export function createCar() {
 
   // Cristalli laterali: due sagome piatte che seguono la linea del tetto.
   const vetroLato = new THREE.Shape();
-  vetroLato.moveTo(-0.88, 0.99);
-  vetroLato.lineTo(0.34, 0.99);
-  vetroLato.lineTo(0.10, 1.30);
-  vetroLato.lineTo(-0.62, 1.32);
+  vetroLato.moveTo(-1.18, 0.99);
+  vetroLato.lineTo(0.44, 0.99);
+  vetroLato.lineTo(0.16, 1.27);
+  vetroLato.lineTo(-0.90, 1.29);
   vetroLato.closePath();
   const vg = new THREE.ShapeGeometry(vetroLato);
   for (const z of [-0.876, 0.876]) {
@@ -75,13 +76,6 @@ export function createCar() {
     if (z < 0) m.rotation.y = Math.PI;
     guscio.add(m);
   }
-  // parabrezza e lunotto: due piani inclinati
-  const para = new THREE.Mesh(new THREE.PlaneGeometry(1.52, 0.62), vetro);
-  para.position.set(0.05, 1.14, 0);
-  para.rotation.set(0, Math.PI / 2, 0);
-  para.rotateX(-0.62);
-  para.position.set(0.33, 1.14, 0);
-  guscio.add(para);
 
   // Fari e fanali: due piccoli blocchi emissivi.
   const faroMat = new THREE.MeshStandardMaterial({
@@ -91,7 +85,7 @@ export function createCar() {
   });
   for (const z of [-0.55, 0.55]) {
     const f = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.12, 0.26), faroMat);
-    f.position.set(2.11, 0.66, z);
+    f.position.set(2.03, 0.60, z);
     guscio.add(f);
   }
   const stopMat = new THREE.MeshStandardMaterial({
@@ -101,7 +95,7 @@ export function createCar() {
   });
   for (const z of [-0.55, 0.55]) {
     const s = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.10, 0.28), stopMat);
-    s.position.set(-2.11, 0.70, z);
+    s.position.set(-2.03, 0.64, z);
     guscio.add(s);
   }
 

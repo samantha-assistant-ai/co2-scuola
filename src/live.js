@@ -18,24 +18,24 @@ const MEZZI = ['benzina', 'diesel', 'elettrica'];
 const COLORI = {benzina: '#e8743a', diesel: '#5b87b3', elettrica: '#47b985'};
 
 runSim(DEFAULTS, async ({canvas, hud}) => {
-  document.title = 'Il viaggio casa → scuola · CO₂';
+  document.title = 'La Scienza Merita · Il viaggio casa → scuola';
   document.documentElement.lang = 'it';
 
   const stage = createStage(canvas, hud, {
-    bg: '#0b0e12',
+    bg: '#cfe3f2',
     fov: 34,
-    bloom: {strength: 0.55, radius: 0.5, threshold: 0.75},
+    bloom: {strength: 0.3, radius: 0.6, threshold: 0.86},
   });
   const {scene, camera, renderer} = stage;
 
-  scene.fog = new THREE.Fog(0x0b0e12, 18, 46);
+  scene.fog = new THREE.Fog(0xd7e7f4, 34, 105);
 
   // ---- luci ----
-  const hemi = new THREE.HemisphereLight(0xbcd4ff, 0x1a1c22, 1.15);
+  const hemi = new THREE.HemisphereLight(0xdfeefb, 0x9a9484, 1.75);
   scene.add(hemi);
 
-  const key = new THREE.DirectionalLight(0xfff2df, 2.1);
-  key.position.set(6, 12, 7);
+  const key = new THREE.DirectionalLight(0xfff6e6, 2.5);
+  key.position.set(9, 17, 7);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
   key.shadow.camera.left = -8;
@@ -46,14 +46,14 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
   key.shadow.bias = -0.0006;
   scene.add(key);
 
-  const rim = new THREE.DirectionalLight(0x7fb0ff, 0.7);
+  const rim = new THREE.DirectionalLight(0xa8ccec, 0.55);
   rim.position.set(-7, 5, -6);
   scene.add(rim);
 
   // ---- suolo e strada ----
   const suolo = new THREE.Mesh(
     new THREE.PlaneGeometry(200, 200),
-    new THREE.MeshStandardMaterial({color: 0x141821, roughness: 0.95}),
+    new THREE.MeshStandardMaterial({color: 0xb6b0a1, roughness: 0.98}),
   );
   suolo.rotation.x = -Math.PI / 2;
   suolo.receiveShadow = true;
@@ -61,23 +61,95 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
 
   const asfalto = new THREE.Mesh(
     new THREE.PlaneGeometry(200, 8.4),
-    new THREE.MeshStandardMaterial({color: 0x1c2027, roughness: 0.9}),
+    new THREE.MeshStandardMaterial({color: 0x4e545c, roughness: 0.92}),
   );
   asfalto.rotation.x = -Math.PI / 2;
   asfalto.position.y = 0.01;
   asfalto.receiveShadow = true;
   scene.add(asfalto);
 
-  const bordoMat = new THREE.MeshStandardMaterial({color: 0x2b313b, roughness: 0.8});
+  const bordoMat = new THREE.MeshStandardMaterial({color: 0xe6e0d2, roughness: 0.85});
   for (const z of [-4.2, 4.2]) {
     const b = new THREE.Mesh(new THREE.BoxGeometry(200, 0.06, 0.16), bordoMat);
     b.position.set(0, 0.03, z);
     scene.add(b);
   }
 
+  // marciapiedi
+  const marciapiede = new THREE.MeshStandardMaterial({color: 0xd3ccbb, roughness: 0.97});
+  for (const z of [-8.6, 8.6]) {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(220, 8.6), marciapiede);
+    m.rotation.x = -Math.PI / 2;
+    m.position.set(0, 0.006, z);
+    m.receiveShadow = true;
+    scene.add(m);
+  }
+
+  // facciate: una texture disegnata a mano, riusata su tutti i palazzi
+  const facciata = (base, win) => {
+    const c = document.createElement('canvas');
+    c.width = 64;
+    c.height = 64;
+    const g = c.getContext('2d');
+    g.fillStyle = base;
+    g.fillRect(0, 0, 64, 64);
+    g.fillStyle = win;
+    for (let y = 7; y < 64; y += 17) {
+      for (let x = 7; x < 64; x += 17) g.fillRect(x, y, 9, 10);
+    }
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = 4;
+    return t;
+  };
+  const basi = ['#e2d8c6', '#d9c3aa', '#cfc9bd', '#e6ddcd', '#c9b7a2', '#dfd2c0'];
+  const fin = '#5b6b78';
+
+  // palazzi sui due lati
+  for (let i = 0; i < 16; i++) {
+    for (const lato of [1, -1]) {
+      const h = 4 + ((i * 29 + (lato > 0 ? 7 : 13)) % 5);
+      const w = 7 + ((i * 11 + (lato > 0 ? 3 : 8)) % 5);
+      const tex = facciata(basi[(i + (lato > 0 ? 1 : 0)) % basi.length], fin);
+      tex.repeat.set(Math.max(1, w / 4.2), Math.max(1, h / 3.6));
+      const pal = new THREE.Mesh(
+        new THREE.BoxGeometry(w, h, 9),
+        new THREE.MeshStandardMaterial({map: tex, roughness: 0.9}),
+      );
+      pal.position.set(-76 + i * 8.2, h / 2, lato > 0 ? 30 : -30);
+      pal.castShadow = true;
+      pal.receiveShadow = true;
+      scene.add(pal);
+      // un cornicione chiaro in cima
+      const cor = new THREE.Mesh(
+        new THREE.BoxGeometry(w + 0.4, 0.35, 9.4),
+        new THREE.MeshStandardMaterial({color: 0xefe8da, roughness: 0.85}),
+      );
+      cor.position.set(pal.position.x, h + 0.15, pal.position.z);
+      scene.add(cor);
+    }
+  }
+
+  // qualche albero per dare scala
+  const tronco = new THREE.MeshStandardMaterial({color: 0x6b5442, roughness: 0.95});
+  const chioma = new THREE.MeshStandardMaterial({color: 0x4f8f4a, roughness: 0.9});
+  for (let i = 0; i < 10; i++) {
+    const z = i % 2 === 0 ? 12.4 : -12.4;
+    const x = -58 + i * 12.5;
+    const t = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.18, 2.2, 8), tronco);
+    t.position.set(x, 1.1, z);
+    t.castShadow = true;
+    scene.add(t);
+    const c = new THREE.Mesh(new THREE.SphereGeometry(0.95, 12, 12), chioma);
+    c.position.set(x, 2.5, z);
+    c.castShadow = true;
+    scene.add(c);
+  }
+
   // tratteggi: si spostano per simulare il movimento
   const tratteggio = [];
-  const dashMat = new THREE.MeshBasicMaterial({color: 0xd8d2c4, transparent: true, opacity: 0.55});
+  const dashMat = new THREE.MeshBasicMaterial({color: 0xf6f3ea, transparent: true, opacity: 0.92});
   for (let i = 0; i < 40; i++) {
     const d = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.02, 0.14), dashMat);
     d.position.set(i * 3 - 60, 0.02, 0);
@@ -92,7 +164,7 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
   // ombra morbida sotto l'auto
   const ombra = new THREE.Mesh(
     new THREE.PlaneGeometry(4.6, 2.2),
-    new THREE.MeshBasicMaterial({color: 0x000000, transparent: true, opacity: 0.35}),
+    new THREE.MeshBasicMaterial({color: 0x2f3a44, transparent: true, opacity: 0.2}),
   );
   ombra.rotation.x = -Math.PI / 2;
   ombra.position.y = 0.015;
@@ -148,9 +220,9 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
   const ORDINE_TOUR = ['benzina', 'elettrica', 'diesel', 'benzina', 'elettrica', 'benzina'];
 
   // camera: 3/4, si avvicina quando il motore è aperto
-  const camBase = new THREE.Vector3(5.4, 3.1, 6.6);
+  const camBase = new THREE.Vector3(5.6, 2.55, 7.0);
   const camCut = new THREE.Vector3(3.0, 1.9, 3.4);
-  const guardaBase = new THREE.Vector3(0, 0.95, 0);
+  const guardaBase = new THREE.Vector3(0, 1.05, 0);
   const guardaCut = new THREE.Vector3(1.2, 1.15, 0);
   const cam = new THREE.Vector3();
   const guarda = new THREE.Vector3();

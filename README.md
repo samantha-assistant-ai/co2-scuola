@@ -1,6 +1,7 @@
-# CO₂ · Il viaggio casa → scuola
+# La Scienza Merita · Il viaggio casa → scuola
 
 Simulatore 3D offline per lezioni sull'effetto serra, 2ª e 3ª media.
+Progetto **La Scienza Merita**. Ambiente diurno, scenario cittadino.
 
 **Una pagina sola, `index.html`, senza dipendenze**: si apre col doppio clic, funziona senza rete, si mette su qualsiasi hosting statico.
 
