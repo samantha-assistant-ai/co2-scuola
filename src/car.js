@@ -213,35 +213,42 @@ export function createCar() {
   autoCompleta.add(papa, bimbo);
 
   // ---- scritta sul cofano ----
-  const cofanoCanvas = document.createElement('canvas');
-  cofanoCanvas.width = 512;
-  cofanoCanvas.height = 256;
-  const cofanoCtx = cofanoCanvas.getContext('2d');
-  const cofanoTex = new THREE.CanvasTexture(cofanoCanvas);
-  cofanoTex.colorSpace = THREE.SRGBColorSpace;
-  const cofanoPlane = new THREE.Mesh(
-    new THREE.PlaneGeometry(1.35, 0.62),
-    new THREE.MeshBasicMaterial({map: cofanoTex, transparent: true, depthWrite: false, side: THREE.DoubleSide}),
-  );
-  // inclinata verso la telecamera: da 3/4 la scritta resta leggibile
-  cofanoPlane.rotation.x = -Math.PI / 2 + 0.42;
-  guscio.add(cofanoPlane);
+  const targaCanvas = document.createElement('canvas');
+  targaCanvas.width = 512;
+  targaCanvas.height = 160;
+  const targaCtx = targaCanvas.getContext('2d');
+  const targaTex = new THREE.CanvasTexture(targaCanvas);
+  targaTex.colorSpace = THREE.SRGBColorSpace;
 
-  function scriviCofano(testo) {
-    const c = cofanoCtx;
-    c.clearRect(0, 0, 512, 256);
-    c.fillStyle = 'rgba(255,255,255,0.92)';
+  const targhe = [];
+  for (const lato of [1, -1]) {
+    const m = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.34, 0.42),
+      new THREE.MeshBasicMaterial({map: targaTex, transparent: true, depthWrite: false, side: THREE.DoubleSide}),
+    );
+    if (lato < 0) m.rotation.y = Math.PI;
+    guscio.add(m);
+    targhe.push(m);
+  }
+
+  function scriviTarga(testo) {
+    const c = targaCtx;
+    c.clearRect(0, 0, 512, 160);
+    c.fillStyle = 'rgba(255,255,255,0.94)';
     c.beginPath();
-    c.roundRect(26, 60, 460, 136, 34);
+    c.roundRect(6, 26, 500, 108, 26);
     c.fill();
+    c.strokeStyle = '#1b2a4a';
+    c.lineWidth = 6;
+    c.stroke();
     c.fillStyle = '#1b2a4a';
-    c.font = 'bold 92px Inter, system-ui, sans-serif';
+    c.font = 'bold 76px Inter, system-ui, sans-serif';
     c.textAlign = 'center';
     c.textBaseline = 'middle';
-    c.fillText(testo.toUpperCase(), 256, 130);
-    cofanoTex.needsUpdate = true;
+    c.fillText(testo.toUpperCase(), 256, 82);
+    targaTex.needsUpdate = true;
   }
-  scriviCofano('benzina');
+  scriviTarga('benzina');
 
   // ---- scarico ----
   const tubo = new THREE.Mesh(
@@ -428,29 +435,152 @@ export function createCar() {
   }
   motore.add(elettrico);
 
-  // ---- autobus ----
+  // ---- autobus scolastico ----
   const bus = new THREE.Group();
   bus.visible = false;
   {
-    const giallo = new THREE.MeshStandardMaterial({color: 0xf2b32a, roughness: 0.55, metalness: 0.1});
-    const scuro = new THREE.MeshStandardMaterial({color: 0x2f3f52, roughness: 0.25, metalness: 0.35});
-    const corpo = new THREE.Mesh(new THREE.BoxGeometry(7.4, 1.95, 2.3), giallo);
-    corpo.position.y = 1.35;
-    corpo.castShadow = true;
-    bus.add(corpo);
-    const fascia = new THREE.Mesh(new THREE.BoxGeometry(6.5, 0.62, 2.34), scuro);
-    fascia.position.set(-0.15, 1.74, 0);
-    bus.add(fascia);
-    const parabrezza = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.85, 2.0), scuro);
-    parabrezza.position.set(3.68, 1.6, 0);
-    bus.add(parabrezza);
-    for (const x of [2.45, -2.15]) {
-      for (const z of [-1.14, 1.14]) {
-        const w = new THREE.Mesh(new THREE.CylinderGeometry(0.46, 0.46, 0.3, 20), new THREE.MeshStandardMaterial({color: 0x14161a, roughness: 0.9}));
-        w.rotation.x = Math.PI / 2;
-        w.position.set(x, 0.46, z);
-        w.castShadow = true;
+    const giallo = new THREE.MeshStandardMaterial({color: 0xf6c331, roughness: 0.45, metalness: 0.15});
+    const scuro = new THREE.MeshStandardMaterial({color: 0x2b3442, roughness: 0.35, metalness: 0.3});
+    const vetroBus = new THREE.MeshPhysicalMaterial({
+      color: 0x9fc4dd, roughness: 0.06, metalness: 0, transparent: true, opacity: 0.4,
+    });
+    const nero = new THREE.MeshStandardMaterial({color: 0x14161a, roughness: 0.85});
+    const cromo = new THREE.MeshStandardMaterial({color: 0xb9bec6, roughness: 0.35, metalness: 0.85});
+
+    // scocca a pannelli: sotto e sopra i finestrini, piu' tetto, pavimento, muso e coda
+    for (const lato of [-1, 1]) {
+      const basso = new THREE.Mesh(new THREE.BoxGeometry(8.4, 1.05, 0.1), giallo);
+      basso.position.set(0, 1.08, lato * 1.2);
+      basso.castShadow = true;
+      bus.add(basso);
+
+      const alto = new THREE.Mesh(new THREE.BoxGeometry(8.4, 0.36, 0.1), giallo);
+      alto.position.set(0, 2.36, lato * 1.2);
+      alto.castShadow = true;
+      bus.add(alto);
+    }
+
+    const tetto = new THREE.Mesh(new THREE.BoxGeometry(8.4, 0.12, 2.44), giallo);
+    tetto.position.y = 2.56;
+    tetto.castShadow = true;
+    bus.add(tetto);
+
+    const pavimento = new THREE.Mesh(new THREE.BoxGeometry(8.4, 0.12, 2.44), scuro);
+    pavimento.position.y = 0.56;
+    bus.add(pavimento);
+
+    const muso = new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.0, 2.44), giallo);
+    muso.position.set(4.2, 1.55, 0);
+    bus.add(muso);
+
+    const coda = new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.0, 2.44), giallo);
+    coda.position.set(-4.2, 1.55, 0);
+    bus.add(coda);
+
+    const striscia = new THREE.Mesh(new THREE.BoxGeometry(8.42, 0.14, 2.46), scuro);
+    striscia.position.set(0, 1.06, 0);
+    bus.add(striscia);
+
+    // finestrini laterali con montanti
+    for (const lato of [-1, 1]) {
+      for (let i = 0; i < 6; i++) {
+        const w = new THREE.Mesh(new THREE.BoxGeometry(1.02, 0.78, 0.04), vetroBus);
+        w.position.set(2.6 - i * 1.14, 1.72, lato * 1.19);
         bus.add(w);
+        const mont = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.8, 0.07), giallo);
+        mont.position.set(3.14 - i * 1.14, 1.76, lato * 1.225);
+        bus.add(mont);
+      }
+    }
+
+    const para = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.98, 2.1), vetroBus);
+    para.position.set(4.21, 1.78, 0);
+    bus.add(para);
+    const luno = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.82, 2.0), vetroBus);
+    luno.position.set(-4.21, 1.76, 0);
+    bus.add(luno);
+
+    // bambini dietro i finestrini
+    const pelli = [0xe7b48f, 0xd29a6f, 0xc98a5c, 0xe8c3a0, 0xb97a50, 0xefc9a8];
+    const maglie = [0x3f6285, 0xd2622a, 0x4f8a45, 0x7a63b8, 0xc8322a, 0x3a6ea5];
+    for (const lato of [-1, 1]) {
+      for (let i = 0; i < 6; i++) {
+        if ((i + (lato > 0 ? 0 : 1)) % 3 === 2) continue;
+        const x = 2.6 - i * 1.14;
+        const testa = new THREE.Mesh(
+          new THREE.SphereGeometry(0.175, 14, 12),
+          new THREE.MeshStandardMaterial({color: pelli[(i + (lato > 0 ? 0 : 2)) % pelli.length], roughness: 0.8}),
+        );
+        testa.position.set(x, 1.72, lato * 0.92);
+        bus.add(testa);
+        const busto = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.135, 0.175, 0.52, 12),
+          new THREE.MeshStandardMaterial({color: maglie[(i + (lato > 0 ? 1 : 0)) % maglie.length], roughness: 0.86}),
+        );
+        busto.position.set(x, 1.34, lato * 0.92);
+        bus.add(busto);
+      }
+    }
+
+    // paraurti, fari, luci di ingombro
+    const paraurti = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.32, 2.5), scuro);
+    paraurti.position.set(4.22, 0.7, 0);
+    bus.add(paraurti);
+    const dietro = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.3, 2.45), scuro);
+    dietro.position.set(-4.22, 0.72, 0);
+    bus.add(dietro);
+
+    for (const z of [-0.78, 0.78]) {
+      const f = new THREE.Mesh(
+        new THREE.BoxGeometry(0.09, 0.24, 0.34),
+        new THREE.MeshStandardMaterial({color: 0xfff3cf, emissive: 0xffe9b0, emissiveIntensity: 0.7}),
+      );
+      f.position.set(4.2, 1.02, z);
+      bus.add(f);
+      const r = new THREE.Mesh(
+        new THREE.BoxGeometry(0.08, 0.2, 0.3),
+        new THREE.MeshStandardMaterial({color: 0xff5540, emissive: 0xff2a12, emissiveIntensity: 0.6}),
+      );
+      r.position.set(-4.2, 1.02, z);
+      bus.add(r);
+    }
+
+    for (const z of [-0.62, 0, 0.62]) {
+      const l = new THREE.Mesh(
+        new THREE.BoxGeometry(0.22, 0.14, 0.24),
+        new THREE.MeshStandardMaterial({color: 0xff9a2a, emissive: 0xff7a10, emissiveIntensity: 0.85}),
+      );
+      l.position.set(4.0, 2.62, z);
+      bus.add(l);
+    }
+
+    // specchietti
+    for (const z of [-1.4, 1.4]) {
+      const braccio = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.07, 0.34), scuro);
+      braccio.position.set(4.05, 2.12, z);
+      bus.add(braccio);
+      const vetroS = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.3, 0.18), scuro);
+      vetroS.position.set(4.05, 2.12, z + Math.sign(z) * 0.2);
+      bus.add(vetroS);
+    }
+
+    // portiera sul lato destro
+    const portiera = new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.5, 1.0), scuro);
+    portiera.position.set(3.35, 1.2, 1.24);
+    bus.add(portiera);
+
+    // ruote con cerchi
+    for (const x of [2.7, -2.5]) {
+      for (const z of [-1.2, 1.2]) {
+        const g = new THREE.Mesh(new THREE.CylinderGeometry(0.53, 0.53, 0.34, 22), nero);
+        g.rotation.x = Math.PI / 2;
+        g.position.set(x, 0.53, z);
+        g.castShadow = true;
+        bus.add(g);
+        const c = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.36, 18), cromo);
+        c.rotation.x = Math.PI / 2;
+        c.position.set(x, 0.53, z);
+        bus.add(c);
       }
     }
   }
@@ -513,7 +643,9 @@ export function createCar() {
         w.position.set(w.userData.sx * spec.ruote.x, spec.ruote.r, w.userData.sz * spec.ruote.z);
         w.scale.setScalar(spec.ruote.r / 0.34);
       }
-      cofanoPlane.position.set(spec.cofano[0], spec.cofano[1], 0);
+      for (const m of targhe) {
+        m.position.set(-0.02, 0.72, (spec.profondita / 2 + 0.06) * (m.rotation.y === 0 ? 1 : -1));
+      }
       for (const l of luci) l.position.x = Math.sign(l.position.x) * (spec.punti[0][0] - 0.02);
       papa.position.x = tipo === 'utilitaria' ? -0.02 : 0.06;
       bimbo.position.x = tipo === 'utilitaria' ? -0.62 : -0.62;
@@ -531,7 +663,6 @@ export function createCar() {
     carrozzeria.needsUpdate = true;
     vetro.opacity = 0.34 * (1 - k) + 0.05 * k;
     aggiornaVisibilita();
-    cofanoPlane.visible = k < 0.5;
     motore.scale.setScalar(1 + 0.1 * k);
     motore.position.y = 0.44 + 0.3 * k;
   }
@@ -543,7 +674,7 @@ export function createCar() {
 
   function setMotore(mezzo, etichetta) {
     stato.mezzo = mezzo;
-    if (etichetta) scriviCofano(etichetta);
+    if (etichetta) scriviTarga(etichetta);
     aggiornaVisibilita();
   }
 

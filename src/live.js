@@ -179,6 +179,57 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
     tratteggio.push(d);
   }
 
+  // ---- cartelloni lungo la strada ----
+  const cartelloni = [];
+  const telaioPalo = new THREE.MeshStandardMaterial({color: 0x8a8f96, roughness: 0.6, metalness: 0.4});
+
+  function cartellone(testo, sfondo, testo2, x) {
+    const c = document.createElement('canvas');
+    c.width = 640;
+    c.height = 320;
+    const g = c.getContext('2d');
+    g.fillStyle = sfondo;
+    g.fillRect(0, 0, 640, 320);
+    g.strokeStyle = 'rgba(27,42,74,.85)';
+    g.lineWidth = 14;
+    g.strokeRect(7, 7, 626, 306);
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    if (testo2) {
+      g.fillStyle = testo2;
+      g.font = 'bold 74px Inter, system-ui, sans-serif';
+      g.fillText(testo, 320, 150);
+    } else {
+      g.fillStyle = '#ffffff';
+      g.font = 'bold 66px Inter, system-ui, sans-serif';
+      g.fillText(testo, 320, 150);
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace;
+
+    const gruppo = new THREE.Group();
+    const pannello = new THREE.Mesh(
+      new THREE.PlaneGeometry(5.2, 2.6),
+      new THREE.MeshBasicMaterial({map: tex, side: THREE.DoubleSide}),
+    );
+    pannello.position.y = 3.4;
+    gruppo.add(pannello);
+
+    for (const dx of [-1.5, 1.5]) {
+      const palo = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 2.1, 8), telaioPalo);
+      palo.position.set(dx, 1.05, -0.08);
+      gruppo.add(palo);
+    }
+
+    gruppo.position.set(x, 0, -9.5);
+    scene.add(gruppo);
+    cartelloni.push(gruppo);
+  }
+
+  cartellone('LA SCIENZA MERITA', '#f6c445', null, 4);
+  cartellone('Evviva gli stemisti Ribelli', '#fff6e0', '#c8322a', 34);
+  cartellone('LA SCIENZA MERITA', '#f6c445', null, 64);
+
   // ---- l'auto ----
   const auto = createCar();
   scene.add(auto.root);
@@ -366,6 +417,10 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
     for (const d of tratteggio) {
       d.position.x -= vel;
       if (d.position.x < -62) d.position.x += 120;
+    }
+    for (const c of cartelloni) {
+      c.position.x -= vel;
+      if (c.position.x < -72) c.position.x += 130;
     }
 
     // camera

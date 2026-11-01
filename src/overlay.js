@@ -66,17 +66,20 @@ const CSS = `
 #ui .annuale .cap { margin-top: .5vmin; font-size: clamp(9px, 1.05vmin, 13px); color: rgba(27,42,74,.55); font-weight: 600; }
 
 /* --- mappa --- */
-#ui .mappa { position: absolute; right: 3.6vmin; bottom: 22vmin; width: min(36vmin, 400px); padding: 1vmin; transform: rotate(.6deg); }
+#ui .mappa { position: absolute; right: 3.6vmin; top: 52vmin; width: min(30vmin, 340px); padding: .9vmin; transform: rotate(.6deg); }
 #ui .mappa canvas { display: block; width: 100%; height: auto; border-radius: 1.4vmin; }
 #ui .mappa .et { margin: .6vmin .4vmin .1vmin; font-size: clamp(9px, 1.1vmin, 13px); color: rgba(27,42,74,.6); font-weight: 700; }
+#ui .mappa .scuola { margin: .5vmin .4vmin .2vmin; padding-top: .5vmin; border-top: 1.5px dashed rgba(27,42,74,.18);
+  font-size: clamp(9px, 1.1vmin, 14px); line-height: 1.3; color: rgba(27,42,74,.72); font-weight: 600; }
+#ui .mappa .scuola b { color: #1b2a4a; font-weight: 800; }
 
 /* --- Luca --- */
 #ui .luca { position: absolute; left: 1.2vmin; top: 25.5vmin; height: 20.5vmin; width: auto;
   filter: drop-shadow(0 6px 14px rgba(27,42,74,.22)); transform: rotate(-1.5deg); }
 
-#ui .gruppo { position: absolute; right: 3.6vmin; top: 29.5vmin; height: 18vmin; width: auto;
-  border-radius: 1.6vmin; border: 2px solid rgba(27,42,74,.9); box-shadow: 4px 4px 0 rgba(27,42,74,.14);
-  transform: rotate(1.6deg); }
+#ui .gruppo-box { position: absolute; right: 3.6vmin; top: 30.5vmin; width: min(23vmin, 270px); padding: .8vmin; }
+#ui .gruppo-box img { display: block; width: 100%; height: auto; border-radius: 1.4vmin; }
+#ui .gruppo-box .et { margin-top: .5vmin; font-size: clamp(9px, 1.05vmin, 13px); color: rgba(27,42,74,.6); font-weight: 700; text-align: center; }
 
 /* --- controlli --- */
 #ui .controlli {
@@ -167,11 +170,15 @@ export function createOverlay({onMezzo, onMotore, onKm, onCut, onToggleAudio, on
       <div class="cap" id="a-cap"></div>
     </div>
 
-    <img class="gruppo" src="${GRUPPO}" alt="Marta e i quattro studenti" />
+    <div class="pannello gruppo-box">
+      <img src="${GRUPPO}" alt="Marta e i quattro studenti" />
+      <div class="et">Marta e i quattro studenti</div>
+    </div>
 
     <div class="pannello mappa">
       <canvas id="map"></canvas>
       <div class="et">Il percorso visto dall'alto</div>
+      <div class="scuola">Scuola Media Statale <b>Giovanni Pascoli</b><br/>Pomigliano d'Arco · NA</div>
     </div>
 
     <div class="tour" id="tour">modalità dimostrazione · tocca per provare</div>

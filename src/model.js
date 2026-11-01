@@ -48,7 +48,7 @@ export const MEZZI = {
     ic: '🚌',
     motori: ['diesel'],
     gkm: {diesel: 30},
-    scala: 0.52,
+    scala: 0.68,
   },
   bicicletta: {
     nome: 'Bicicletta',
