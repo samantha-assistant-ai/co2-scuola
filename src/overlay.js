@@ -57,6 +57,11 @@ const CSS = `
   font-size: clamp(11px, 1.35vmin, 17px); color: rgba(27,42,74,.82); font-weight: 600; line-height: 1.35;
 }
 #ui .alberi .ico { font-size: 1.5em; line-height: 1; }
+#ui .bosco { display: flex; flex-wrap: wrap; gap: .2vmin; margin-top: .6vmin; max-width: 100%; }
+#ui .bosco svg { width: 2.1vmin; height: 2.6vmin; }
+#ui .bosco .piu { font-size: clamp(10px, 1.2vmin, 15px); font-weight: 800; color: #2f6b34; align-self: flex-end; margin-left: .4vmin; }
+#ui .classe { margin-top: .7vmin; font-size: clamp(10px, 1.25vmin, 16px); font-weight: 700; color: #1b2a4a;
+  background: rgba(246,196,69,.38); border: 1.5px solid rgba(27,42,74,.18); border-radius: 1vmin; padding: .5vmin .8vmin; }
 #ui .alberi b { color: #2f6b34; font-weight: 800; }
 #ui .annuale .cap { margin-top: .5vmin; font-size: clamp(9px, 1.05vmin, 13px); color: rgba(27,42,74,.55); font-weight: 600; }
 
@@ -102,7 +107,7 @@ const CSS = `
 
 const num = (v) => Math.round(v).toLocaleString('it-IT');
 
-export function createOverlay({onMezzo, onMotore, onKm, onCut}) {
+export function createOverlay({onMezzo, onMotore, onKm, onCut, onToggleAudio}) {
   if (!document.getElementById('ui-style')) {
     const st = document.createElement('style');
     st.id = 'ui-style';
@@ -142,7 +147,9 @@ export function createOverlay({onMezzo, onMotore, onKm, onCut}) {
         <div class="r"><span>Ogni giorno</span><b id="a-giorno">970 g</b></div>
       </div>
       <div class="tot"><span id="a-anno">194</span><small>kg</small></div>
+      <div class="bosco" id="bosco"></div>
       <div class="alberi"><span class="ico">🌳</span><span>Per assorbirla servirebbero <b id="a-alberi">10</b> alberi adulti, per un anno intero.</span></div>
+      <div class="classe" id="classe"></div>
       <div class="cap" id="a-cap"></div>
     </div>
 
@@ -166,6 +173,7 @@ export function createOverlay({onMezzo, onMotore, onKm, onCut}) {
           <input id="slider" type="range" min="1" max="12" step="0.5" value="3" />
         </div>
         <button class="chip" id="cut" type="button" aria-pressed="false">🔧 <span>Apri il motore</span></button>
+        <button class="chip" id="audio" type="button" aria-pressed="true">🔊 <span>Audio</span></button>
       </div>
     </div>
   `;
@@ -203,6 +211,13 @@ export function createOverlay({onMezzo, onMotore, onKm, onCut}) {
   const cut = root.querySelector('#cut');
   cut.addEventListener('click', () => onCut());
 
+  const audioBtn = root.querySelector('#audio');
+  audioBtn.addEventListener('click', () => {
+    const on = onToggleAudio ? onToggleAudio() : true;
+    audioBtn.setAttribute('aria-pressed', String(on));
+    audioBtn.innerHTML = `${on ? '🔊' : '🔇'} <span>Audio</span>`;
+  });
+
   const barre = root.querySelector('#barre');
   const barreEl = {};
   for (const [id, m] of Object.entries(MEZZI)) {
@@ -225,6 +240,11 @@ export function createOverlay({onMezzo, onMotore, onKm, onCut}) {
   const aGiorno = root.querySelector('#a-giorno');
   const aAnno = root.querySelector('#a-anno');
   const aAlberi = root.querySelector('#a-alberi');
+  const bosco = root.querySelector('#bosco');
+  const classe = root.querySelector('#classe');
+
+  const ALBERO_SVG = '<svg viewBox="0 0 20 24" aria-hidden="true"><rect x="8.6" y="15" width="2.8" height="8" rx="1" fill="#8a6242"/><path d="M10 1.5 17.5 14h-15z" fill="#3f8a45"/><path d="M10 7 16 17H4z" fill="#4f9d52"/></svg>';
+  let ultimiAlberi = -1;
   const aCap = root.querySelector('#a-cap');
 
   return {
@@ -267,6 +287,15 @@ export function createOverlay({onMezzo, onMotore, onKm, onCut}) {
         : `${num(a.ogniGiorno)} g`;
       aAnno.textContent = num(a.anno);
       aAlberi.textContent = data.alberi === 0 ? '0' : num(data.alberi);
+
+      if (data.alberi !== ultimiAlberi) {
+        ultimiAlberi = data.alberi;
+        const mostra = Math.min(data.alberi, 60);
+        let html = ALBERO_SVG.repeat(mostra);
+        if (data.alberi > mostra) html += `<span class="piu">+${num(data.alberi - mostra)}</span>`;
+        bosco.innerHTML = html;
+        classe.innerHTML = `E per tutta la classe? Con <b>20</b> ragazzi servirebbero <b>${num(data.alberiClasse)}</b> alberi.`;
+      }
       aCap.textContent = `${data.giorni} giorni × ${String(a.andataRitorno).replace('.', ',')} km · ${data.nota}`;
 
       cut.setAttribute('aria-pressed', String(!!data.cutaway));

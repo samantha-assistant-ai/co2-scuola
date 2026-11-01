@@ -3,6 +3,7 @@ import {runSim} from 'teardown-kit/runtime.js';
 import {createStage} from 'teardown-kit/stage3d.js';
 import {createCar} from './car.js';
 import {createOverlay} from './overlay.js';
+import {createAudio} from './audio.js';
 import {co2, gPerKm, annuale, alberi, GIORNI_SCUOLA, MEZZI, MOTORI} from './model.js';
 
 const DEFAULTS = {
@@ -241,7 +242,15 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
       stato.cutTarget = stato.cutTarget > 0.5 ? 0 : 1;
       interagisci();
     },
+    onToggleAudio: () => {
+      audio.ensure();
+      const on = audio.toggle();
+      if (on) audio.setVeicolo(stato.mezzo, stato.motore);
+      return on;
+    },
   });
+
+  const audio = createAudio();
 
   function applicaVeicolo() {
     const m = MEZZI[stato.mezzo];
@@ -250,6 +259,7 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
     auto.setMotore(stato.motore);
     const bici = stato.mezzo === 'bicicletta';
     auto.setScarico(stato.motore, bici ? 'nessuno' : (MOTORI[stato.motore]?.fumo ?? 'nessuno'));
+    audio.setVeicolo(stato.mezzo, stato.motore);
   }
 
   applicaVeicolo();
@@ -260,6 +270,42 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
     stato.tour = false;
     stato.tourTimer = 0;
   }
+
+  const avviaAudio = () => {
+    audio.ensure();
+    audio.setVeicolo(stato.mezzo, stato.motore);
+  };
+  addEventListener('pointerdown', avviaAudio, {once: true});
+  addEventListener('keydown', avviaAudio, {once: true});
+
+  // orbita: trascinando col mouse si gira intorno alla scena
+  const orbita = {az: 0, el: 0, attivo: false, x: 0, y: 0, zoom: 1};
+  canvas.addEventListener('pointerdown', (e) => {
+    orbita.attivo = true;
+    orbita.x = e.clientX;
+    orbita.y = e.clientY;
+    canvas.setPointerCapture?.(e.pointerId);
+    interagisci();
+  });
+  canvas.addEventListener('pointermove', (e) => {
+    if (!orbita.attivo) return;
+    orbita.az -= (e.clientX - orbita.x) * 0.006;
+    orbita.el = Math.max(-0.55, Math.min(0.95, orbita.el + (e.clientY - orbita.y) * 0.004));
+    orbita.x = e.clientX;
+    orbita.y = e.clientY;
+  });
+  addEventListener('pointerup', () => {
+    orbita.attivo = false;
+  });
+  canvas.addEventListener(
+    'wheel',
+    (e) => {
+      orbita.zoom = Math.max(0.7, Math.min(2.1, orbita.zoom * (1 + Math.sign(e.deltaY) * 0.08)));
+      e.preventDefault();
+      interagisci();
+    },
+    {passive: false},
+  );
 
   const ORDINE_TOUR = [
     ['utilitaria', 'benzina'],
@@ -324,6 +370,13 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
     cam.x += Math.sin(t * 0.16) * 0.55 * (1 - k);
     cam.z += Math.cos(t * 0.13) * 0.35 * (1 - k);
     guarda.copy(guardaBase).lerp(guardaCut, k);
+
+    const sfera = new THREE.Spherical().setFromVector3(cam.clone().sub(guarda));
+    sfera.theta += orbita.az;
+    sfera.phi = Math.max(0.25, Math.min(1.45, sfera.phi - orbita.el));
+    sfera.radius /= orbita.zoom;
+    cam.copy(guarda).add(new THREE.Vector3().setFromSpherical(sfera));
+
     camera.position.copy(cam);
     camera.lookAt(guarda);
 
@@ -338,6 +391,7 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
     const nota = `${g} g CO₂ per km`;
 
     const ann = annuale(stato.mezzo, stato.motore, stato.km);
+    audio.frame(t);
 
     overlay.update({
       totale,
@@ -348,6 +402,7 @@ runSim(DEFAULTS, async ({canvas, hud}) => {
       nota,
       annuale: ann,
       alberi: alberi(ann.anno),
+      alberiClasse: alberi(ann.anno * 20),
       giorni: GIORNI_SCUOLA,
       cutaway: stato.cutTarget > 0.5,
       tour: stato.tour,

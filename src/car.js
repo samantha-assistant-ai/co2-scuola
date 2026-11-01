@@ -435,7 +435,7 @@ export function createCar() {
     bus.visible = isBus;
     bici.visible = isBici;
     autoCompleta.visible = !isBus && !isBici;
-    guscio.visible = !isBus && !isBici && stato.cutaway < 0.98;
+    guscio.visible = !isBus && !isBici;
     motore.visible = !isBici;
     combustione.visible = !isBici && stato.mezzo !== 'elettrica' && !isBus;
     elettrico.visible = !isBici && stato.mezzo === 'elettrica' && !isBus;
@@ -454,7 +454,8 @@ export function createCar() {
   function setCutaway(k) {
     stato.cutaway = k;
     carrozzeria.transparent = k > 0.01;
-    carrozzeria.opacity = 1 - 0.86 * k;
+    carrozzeria.depthWrite = k < 0.4;
+    carrozzeria.opacity = 1 - 0.95 * k;
     carrozzeria.needsUpdate = true;
     vetro.opacity = 0.34 * (1 - k) + 0.05 * k;
     aggiornaVisibilita();
