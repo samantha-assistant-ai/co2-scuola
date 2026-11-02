@@ -59,6 +59,19 @@
   .didascalia{margin-top:10px;font-size:clamp(11px,1vw,13px);color:rgba(27,42,74,.6);font-weight:600}
   footer{margin-top:clamp(18px,2.4vw,30px);padding-top:14px;border-top:2px dashed rgba(27,42,74,.18);
     font-size:clamp(11px,1vw,13px);color:rgba(27,42,74,.55);font-weight:600;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .nome { margin-top: clamp(16px,2vw,26px); }
+  .nome label { display:block; font-size: clamp(12px,1.05vw,15px); font-weight:800; letter-spacing:.02em; margin-bottom:8px; }
+  .nome input {
+    width: min(340px,100%); border:3px solid var(--inchiostro); border-radius:14px; background:#fff;
+    padding: clamp(10px,1.05vw,14px) 14px; font: inherit; font-size: clamp(16px,1.4vw,20px); font-weight:700;
+    color: var(--inchiostro); outline:none; box-shadow: 4px 4px 0 rgba(27,42,74,.12);
+  }
+  .nome input:focus { border-color:#c8322a; }
+  .via.disabilitato { opacity:.35; pointer-events:none; filter:grayscale(.4); }
+  .nome .nota { margin-top:8px; font-size: clamp(11px,.95vw,13px); color: rgba(27,42,74,.55); font-weight:600; }
+  .altra { margin-top: 14px; font-size: clamp(11px,1vw,13px); color: rgba(27,42,74,.55); font-weight:600; }
+  .altra a { color: var(--inchiostro); }
+
   @media (max-width:820px){
     .griglia{grid-template-columns:1fr}
     .illu{order:-1}
@@ -87,7 +100,13 @@
           <li><span class="pallino">2</span><span>Imposta la distanza da casa a scuola.</span></li>
           <li><span class="pallino">3</span><span>Guarda quanta CO₂ esce davvero dallo scarico — e quanti alberi servirebbero per assorbirla.</span></li>
         </ul>
-        <a class="via" href="sim.html">Entra nella simulazione <span aria-hidden="true">→</span></a>
+        <div class="nome">
+          <label for="nome">Prima di entrare: come ti chiami?</label>
+          <input id="nome" type="text" placeholder="Il tuo nome" autocomplete="off" maxlength="24" />
+          <a class="via disabilitato" id="entra" href="v2.html" aria-disabled="true">Entra nella simulazione <span aria-hidden="true">→</span></a>
+          <div class="nota">Il nome serve solo a salutarti: resta nel tuo computer, non viene salvato.</div>
+        </div>
+        <div class="altra">oppure <a href="sim.html">apri la versione precedente</a></div>
       </div>
 
       <div class="illu">
@@ -101,5 +120,27 @@
       <span>Lezione per la scuola secondaria di primo grado</span>
     </footer>
   </main>
+  <script>
+    (function () {
+      var input = document.getElementById('nome');
+      var entra = document.getElementById('entra');
+      function aggiorna() {
+        var nome = input.value.trim();
+        var valido = nome.length >= 2;
+        entra.classList.toggle('disabilitato', !valido);
+        entra.setAttribute('aria-disabled', String(!valido));
+        entra.href = 'v2.html?nome=' + encodeURIComponent(nome);
+      }
+      input.addEventListener('input', aggiorna);
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && input.value.trim().length >= 2) location.href = entra.href;
+      });
+      entra.addEventListener('click', function (e) {
+        if (entra.classList.contains('disabilitato')) e.preventDefault();
+      });
+      aggiorna();
+      input.focus();
+    })();
+  </script>
 </body>
 </html>

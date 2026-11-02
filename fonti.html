@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Da dove vengono i numeri · La Scienza Merita</title>
+<meta name="description" content="Le fonti dei dati usati nella simulazione: emissioni per chilometro, fattori di conversione, assorbimento degli alberi, impronta media.">
+<style>
+  :root{ --carta:#fffaf0; --inchiostro:#1b2a4a; --giallo:#f6c445; --rosso:#c8322a; --verde:#4e8a4a; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--carta);color:var(--inchiostro);
+    font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;line-height:1.5}
+  .foglio{max-width:1000px;margin:0 auto;padding:clamp(20px,4vw,56px)}
+  .occhiello{font-size:12px;letter-spacing:.2em;text-transform:uppercase;font-weight:800;color:var(--rosso)}
+  h1{font-size:clamp(30px,4.4vw,52px);line-height:1.02;letter-spacing:-.03em;margin:.2em 0 .3em;font-weight:800}
+  .intro{font-size:clamp(15px,1.35vw,19px);color:rgba(27,42,74,.78);max-width:70ch;font-weight:500}
+  .avviso{margin:22px 0;padding:14px 18px;border:2px solid rgba(27,42,74,.9);border-radius:14px;
+    background:rgba(246,196,69,.25);font-size:clamp(13px,1.15vw,16px);font-weight:600}
+  .voce{border-top:2px solid rgba(27,42,74,.14);padding:20px 0 18px}
+  .voce:first-of-type{border-top:3px solid var(--inchiostro)}
+  .dato{font-size:clamp(16px,1.5vw,21px);font-weight:800;letter-spacing:-.01em}
+  .valore{font-weight:800;color:var(--rosso)}
+  dl{margin:10px 0 0;display:grid;grid-template-columns:104px 1fr;gap:4px 14px;font-size:clamp(13px,1.15vw,16px)}
+  dt{font-weight:800;color:rgba(27,42,74,.55);text-transform:uppercase;letter-spacing:.08em;font-size:.82em;padding-top:2px}
+  dd{margin:0;color:rgba(27,42,74,.86)}
+  dd a{color:var(--inchiostro);word-break:break-word}
+  .nota{margin-top:8px;font-size:clamp(12px,1.05vw,14px);color:rgba(27,42,74,.6);font-weight:600}
+  footer{margin-top:34px;padding-top:18px;border-top:2px dashed rgba(27,42,74,.18);
+    font-size:13px;color:rgba(27,42,74,.6);font-weight:600;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+  a.indietro{display:inline-block;margin-bottom:18px;font-weight:800;color:var(--inchiostro);text-decoration:none;
+    border-bottom:3px solid var(--giallo)}
+  @media print{ body{background:#fff} a.indietro{display:none} .voce{break-inside:avoid} }
+</style>
+</head>
+<body>
+<div class="foglio">
+  <a class="indietro" href="index.html">← torna alla copertina</a>
+  <div class="occhiello">La Scienza Merita · L'Elefante Invisibile</div>
+  <h1>Da dove vengono<br>questi numeri</h1>
+  <p class="intro">
+    Ogni valore della simulazione è un dato pubblico, arrotondato per poterlo usare in classe.
+    Qui sotto, per ogni numero: che cosa è, da dove viene e dove andarlo a controllare.
+  </p>
+
+  <div class="avviso">
+    I valori sono arrotondati e servono a confrontare i mezzi tra loro. Non sono una misura del tuo viaggio:
+    per quello servirebbero i chilometri reali e il consumo della tua auto.
+  </div>
+
+  <div class="voce">
+    <div class="dato">Un'auto media a benzina emette <span class="valore">120 g di CO₂ per chilometro</span></div>
+    <dl>
+      <dt>Dato</dt><dd>Emissione media di un'autovettura a benzina in uso urbano ed extraurbano.</dd>
+      <dt>Fonte</dt><dd>ISPRA, banca dati dei fattori di emissione; Agenzia europea dell'ambiente (EEA) per i valori medi del parco auto europeo.</dd>
+      <dt>Bibliografia</dt><dd>ISPRA — <a href="https://www.isprambiente.gov.it/it" target="_blank" rel="noopener">isprambiente.gov.it</a> · EEA — <a href="https://www.eea.europa.eu/" target="_blank" rel="noopener">eea.europa.eu</a></dd>
+    </dl>
+    <div class="nota">Nota: è un valore medio. Un'utilitaria sta intorno a 105, un SUV intorno a 165.</div>
+  </div>
+
+  <div class="voce">
+    <div class="dato">Bruciare un litro di benzina produce <span class="valore">2,31 kg di CO₂</span></div>
+    <dl>
+      <dt>Dato</dt><dd>Fattore di emissione della benzina: la CO₂ che si forma bruciando un litro.</dd>
+      <dt>Fonte</dt><dd>ISPRA, fattori di emissione nazionali; IPCC, linee guida sui gas serra.</dd>
+      <dt>Bibliografia</dt><dd>ISPRA — <a href="https://www.isprambiente.gov.it/it" target="_blank" rel="noopener">isprambiente.gov.it</a> · IPCC — <a href="https://www.ipcc.ch/" target="_blank" rel="noopener">ipcc.ch</a></dd>
+    </dl>
+  </div>
+
+  <div class="voce">
+    <div class="dato">Bruciare un litro di gasolio produce <span class="valore">2,64 kg di CO₂</span></div>
+    <dl>
+      <dt>Dato</dt><dd>Fattore di emissione del diesel: leggermente superiore alla benzina per litro.</dd>
+      <dt>Fonte</dt><dd>ISPRA, fattori di emissione nazionali; IPCC.</dd>
+      <dt>Bibliografia</dt><dd>ISPRA — <a href="https://www.isprambiente.gov.it/it" target="_blank" rel="noopener">isprambiente.gov.it</a></dd>
+    </dl>
+    <div class="nota">Nota: il diesel emette più CO₂ per litro, ma consuma meno litri per chilometro. Il risultato per km è simile alla benzina.</div>
+  </div>
+
+  <div class="voce">
+    <div class="dato">Un chilowattora dalla rete italiana vale <span class="valore">circa 0,31 kg di CO₂</span></div>
+    <dl>
+      <dt>Dato</dt><dd>Intensità carbonica del mix elettrico italiano: quanta CO₂ si produce per ogni kWh consumato.</dd>
+      <dt>Fonte</dt><dd>ISPRA, fattori di emissione del settore elettrico; dati TERNA sulla produzione.</dd>
+      <dt>Bibliografia</dt><dd>ISPRA — <a href="https://www.isprambiente.gov.it/it" target="_blank" rel="noopener">isprambiente.gov.it</a> · TERNA — <a href="https://www.terna.it/it" target="_blank" rel="noopener">terna.it</a></dd>
+    </dl>
+    <div class="nota">Per questo la simulazione chiede da dove viene l'energia: con sole e vento il valore scende a circa 0,02 kg per kWh.</div>
+  </div>
+
+  <div class="voce">
+    <div class="dato">Un autobus urbano emette <span class="valore">circa 30 g di CO₂ per passeggero e per km</span></div>
+    <dl>
+      <dt>Dato</dt><dd>Emissione per persona trasportata, con un bus pieno a metà.</dd>
+      <dt>Fonte</dt><dd>ISPRA, fattori di emissione dei mezzi pubblici; UITP, statistiche sul trasporto pubblico urbano.</dd>
+      <dt>Bibliografia</dt><dd>ISPRA — <a href="https://www.isprambiente.gov.it/it" target="_blank" rel="noopener">isprambiente.gov.it</a> · UITP — <a href="https://www.uitp.org/" target="_blank" rel="noopener">uitp.org</a></dd>
+    </dl>
+    <div class="nota">Il valore dipende da quante persone ci sono a bordo: un bus vuoto è peggio di un'auto.</div>
+  </div>
+
+  <div class="voce">
+    <div class="dato">Un albero adulto assorbe <span class="valore">circa 21 kg di CO₂ all'anno</span></div>
+    <dl>
+      <dt>Dato</dt><dd>Assorbimento medio annuo di un albero maturo in clima temperato.</dd>
+      <dt>Fonte</dt><dd>Arbor Day Foundation; USDA Forest Service, studi sull'assorbimento del carbonio.</dd>
+      <dt>Bibliografia</dt><dd>Arbor Day Foundation — <a href="https://www.arborday.org/" target="_blank" rel="noopener">arborday.org</a> · USDA Forest Service — <a href="https://www.fs.usda.gov/" target="_blank" rel="noopener">fs.usda.gov</a></dd>
+    </dl>
+    <div class="nota">Le stime vanno da 10 a 40 kg secondo specie, età e clima: 21 è un valore centrale, non una certezza.</div>
+  </div>
+
+  <div class="voce">
+    <div class="dato">Ogni persona in Europa emette <span class="valore">circa 9 tonnellate di CO₂ equivalente all'anno</span></div>
+    <dl>
+      <dt>Dato</dt><dd>Impronta media pro capite nell'Unione europea, tutti i consumi compresi.</dd>
+      <dt>Fonte</dt><dd>Eurostat, conti delle emissioni di gas serra; Commissione europea.</dd>
+      <dt>Bibliografia</dt><dd>Eurostat — <a href="https://ec.europa.eu/eurostat" target="_blank" rel="noopener">ec.europa.eu/eurostat</a></dd>
+    </dl>
+    <div class="nota">Nel manuale il T-Rex (circa 9 tonnellate) è usato come unità di misura di questa impronta.</div>
+  </div>
+
+  <div class="voce">
+    <div class="dato">Un panda adulto pesa <span class="valore">circa 96 kg</span></div>
+    <dl>
+      <dt>Dato</dt><dd>Peso medio di un panda gigante adulto: l'unità di paragone del capitolo 1.</dd>
+      <dt>Fonte</dt><dd>WWF, scheda specie del panda gigante.</dd>
+      <dt>Bibliografia</dt><dd>WWF — <a href="https://www.worldwildlife.org/species/giant-panda" target="_blank" rel="noopener">worldwildlife.org/species/giant-panda</a></dd>
+    </dl>
+  </div>
+
+  <div class="voce">
+    <div class="dato">Un percorso in auto è <span class="valore">circa il doppio</span> della distanza in linea d'aria</div>
+    <dl>
+      <dt>Dato</dt><dd>Assunzione didattica: sensi unici e giri obbligati allungano il tragitto. Nel manuale 1 km diventa 2 km.</dd>
+      <dt>Fonte</dt><dd>Assunzione della simulazione, non un dato misurato.</dd>
+      <dt>Bibliografia</dt><dd>Può essere verificata sul percorso reale con una mappa o un contachilometri.</dd>
+    </dl>
+  </div>
+
+  <div class="voce">
+    <div class="dato">I tempi di percorrenza usano <span class="valore">velocità medie urbane</span></div>
+    <dl>
+      <dt>Dato</dt><dd>Auto 22 km/h, bus 15, bici 14, a piedi 5, più i tempi morti (chiavi, garage, attesa, semafori).</dd>
+      <dt>Fonte</dt><dd>Assunzione della simulazione, costruita sugli ordini di grandezza del traffico urbano.</dd>
+      <dt>Bibliografia</dt><dd>Cronometrabile in classe: è il modo migliore per verificarla.</dd>
+    </dl>
+  </div>
+
+  <footer>
+    <span>La Scienza Merita · Stemista Ribelle · L'Elefante Invisibile</span>
+    <span>Valori arrotondati per uso didattico · <a href="index.html">torna all'inizio</a></span>
+  </footer>
+</div>
+</body>
+</html>
